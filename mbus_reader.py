@@ -17,5 +17,5 @@ def read_meter():
     # Simulated reading
     return {
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "value": round(random.uniform(100.0, 200.0), 2)
+        "value": round(random.uniform(100.0, 200.0),2)
     }
