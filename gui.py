@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import font
-from database import get_latest_reading
+from database import get_all_readings
 
 def launch_gui():
     root = tk.Tk()
@@ -22,9 +22,12 @@ def launch_gui():
     label.pack(pady=5)
 
     def update_label():
-        row = get_latest_reading()
-        if row:
-            label.config(text=f"{row[2]} m³ at {row[1]}")
+        readings = get_all_readings()
+        if readings:
+            text_lines = []
+            for row in readings:
+                text_lines.append(f"{row[2]} m³ at {row[1]}")
+            label.config(text="\n".join(text_lines))
         else:
             label.config(text="No data found")
 
