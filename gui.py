@@ -3,7 +3,7 @@ from database import get_latest_reading
 
 def launch_gui():
     root = tk.Tk()
-    root.title("Water Meter GUI")
+    root.title("Water Meter")
 
     label = tk.Label(root, text="Click to load latest reading")
     label.pack(pady=10)

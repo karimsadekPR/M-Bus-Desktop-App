@@ -20,7 +20,7 @@ def save_reading(timestamp, value):
 def get_latest_reading():
     conn = sqlite3.connect('meter_data.db')
     cur = conn.cursor()
-    cur.execute("SELECT * FROM readings ORDER BY id DESC LIMIT 1")
+    cur.execute("SELECT * FROM readings ORDER BY id DESC")
     row = cur.fetchone()
     conn.close()
     return row
