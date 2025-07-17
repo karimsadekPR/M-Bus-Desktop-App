@@ -1,8 +1,7 @@
 import tkinter as tk
 from tkinter import font
-from database import get_all_readings, save_reading
+from database import get_all_readings, save_reading, save_meter
 from mbus_reader import read_meter
-from config import METER_ADDRESS
 def launch_gui():
     root = tk.Tk()
     root.title("Water Meter GUI")
@@ -27,35 +26,46 @@ def launch_gui():
         if readings:
             text_lines = []
             for row in readings:
-                text_lines.append(f"{row[2]} m³ at {row[1]}")
+                text_lines.append(f"meter: {row[1]} takes {row[3]} m³ at {row[2]}")
             label.config(text="\n".join(text_lines))
         else:
             label.config(text="No data found")
 
     def read_new_meter():
-        data = read_meter()
+        data = read_meter(3)
         if data:
             timestamp = data.get("timestamp")
             usage = data.get("value")
+            meter_id = data.get('id')
             if timestamp and usage is not None:
-                save_reading(timestamp, usage)
-                label.config(text=f"New reading: {usage} m³ at {timestamp}")
+                save_meter(meter_id)
+                save_reading(meter_id, timestamp, usage)
+                label.config(text=f"New reading: {usage} m³ at {timestamp}, Meter ID: {meter_id}")
             else:
                 label.config(text="Invalid data from meter")
         else:
             label.config(text="Failed to read meter")
+
     def read_all_meters():
-        success_count = 0
-        for meterId in METER_ADDRESS:
-            data = read_meter(meterId)
+        meter_ids = [1, 2, 3]  # Replace with actual IDs or discovery logic
+        readings_summary = []
+
+        for meter_id in meter_ids:
+            data = read_meter(meter_id)
             if data:
                 timestamp = data.get("timestamp")
                 usage = data.get("value")
+                meter_id = data.get("id")
                 if timestamp and usage is not None:
-                    save_reading(meterId, timestamp, usage)
-                    success_count += 1
-        label.config(text=f"Read {success_count} meters.")
+                    save_meter(meter_id)
+                    save_reading(meter_id, timestamp, usage)
+                    readings_summary.append(f"{usage} m³ at {timestamp}, Meter ID: {meter_id}")
+                else:
+                    readings_summary.append(f"Invalid data from Meter ID: {meter_id}")
+            else:
+                readings_summary.append(f"Failed to read Meter ID: {meter_id}")
 
+        label.config(text="\n".join(readings_summary) if readings_summary else "No meters read")
 
     # Load button
     btn_load = tk.Button(root, text="Load all Readings", font=button_font, command=update_label, bg="#4a90e2", fg="white", activebackground="#357ABD", activeforeground="white", relief="flat", padx=10, pady=5)

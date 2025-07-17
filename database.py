@@ -3,25 +3,47 @@ import sqlite3
 def init_db():
     conn = sqlite3.connect('meter_data.db')
     conn.execute('''
-    CREATE TABLE IF NOT EXISTS readings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        meterId INTEGER,
-        timestamp TEXT,
-        water_usage REAL
-    )
+        CREATE TABLE IF NOT EXISTS readings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            meterId INTEGER,
+            timestamp TEXT,
+            water_usage REAL
+        )
+    ''')
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS meters (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            meterId INTEGER
+        )
     ''')
     conn.close()
 
-def save_reading(meterId,timestamp, value):
+def save_reading(meterId, timestamp, value):
     conn = sqlite3.connect('meter_data.db')
-    conn.execute("INSERT INTO readings (meterId, timestamp, water_usage) VALUES (?, ?, ?)", (meterId,timestamp, value))
+    conn.execute('''
+        INSERT INTO readings (meterId, timestamp, water_usage)
+        VALUES (?, ?, ?)
+    ''', (meterId, timestamp, value))
     conn.commit()
     conn.close()
-    
+
+def save_meter(meter_id):
+    conn = sqlite3.connect('meter_data.db')
+    cur = conn.cursor()
+    cur.execute('SELECT id FROM meters WHERE meterId = ?', (meter_id,))
+    existing = cur.fetchone()
+    if existing is None:
+        cur.execute('''
+            INSERT INTO meters (meterId)
+            VALUES (?)
+        ''', (meter_id,))
+        conn.commit()
+    conn.close()
+
 def get_all_readings():
     conn = sqlite3.connect('meter_data.db')
     cur = conn.cursor()
-    cur.execute("SELECT * FROM readings ORDER BY id DESC")  # Get all rows, newest first
-    rows = cur.fetchall()  # Fetch all results
+    cur.execute('SELECT * FROM readings ORDER BY water_usage DESC')
+    rows = cur.fetchall()
     conn.close()
-    return rows  # Returns a list of tuples
+    return rows
