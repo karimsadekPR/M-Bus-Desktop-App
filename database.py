@@ -5,15 +5,16 @@ def init_db():
     conn.execute('''
     CREATE TABLE IF NOT EXISTS readings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        meterId INTEGER,
         timestamp TEXT,
         water_usage REAL
     )
     ''')
     conn.close()
 
-def save_reading(timestamp, value):
+def save_reading(meterId,timestamp, value):
     conn = sqlite3.connect('meter_data.db')
-    conn.execute("INSERT INTO readings (timestamp, water_usage) VALUES (?, ?)", (timestamp, value))
+    conn.execute("INSERT INTO readings (meterId, timestamp, water_usage) VALUES (?, ?, ?)", (meterId,timestamp, value))
     conn.commit()
     conn.close()
     

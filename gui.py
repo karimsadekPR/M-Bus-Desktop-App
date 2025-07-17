@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import font
 from database import get_all_readings, save_reading
 from mbus_reader import read_meter
-
+from config import METER_ADDRESS
 def launch_gui():
     root = tk.Tk()
     root.title("Water Meter GUI")
@@ -44,13 +44,43 @@ def launch_gui():
                 label.config(text="Invalid data from meter")
         else:
             label.config(text="Failed to read meter")
+    def read_all_meters():
+        success_count = 0
+        for meterId in METER_ADDRESS:
+            data = read_meter(meterId)
+            if data:
+                timestamp = data.get("timestamp")
+                usage = data.get("value")
+                if timestamp and usage is not None:
+                    save_reading(meterId, timestamp, usage)
+                    success_count += 1
+        label.config(text=f"Read {success_count} meters.")
+
 
     # Load button
-    btn_load = tk.Button(root, text="Load Reading", font=button_font, command=update_label, bg="#4a90e2", fg="white", activebackground="#357ABD", activeforeground="white", relief="flat", padx=10, pady=5)
+    btn_load = tk.Button(root, text="Load all Readings", font=button_font, command=update_label, bg="#4a90e2", fg="white", activebackground="#357ABD", activeforeground="white", relief="flat", padx=10, pady=5)
     btn_load.pack(pady=(10, 5))
 
     # Read new meter button
     btn_read = tk.Button(root, text="Read New Meter", font=button_font, command=read_new_meter, bg="#50C878", fg="white", activebackground="#3AAE5B", activeforeground="white", relief="flat", padx=10, pady=5)
     btn_read.pack(pady=(5, 15))
 
+    btn_read_all = tk.Button(
+        root,
+        text="Read All Meters",
+        font=button_font,
+        command=read_all_meters,
+        bg="#FFA500",
+        fg="white",
+        activebackground="#E69500",
+        activeforeground="white",
+        relief="flat",
+        padx=10,
+        pady=5
+)
+    btn_read_all.pack(pady=(5, 15))
+
+
+
     root.mainloop()
+    
