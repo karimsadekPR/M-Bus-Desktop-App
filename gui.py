@@ -1,35 +1,39 @@
 import tkinter as tk
-from tkinter import font, ttk
+from tkinter import font
 from database import get_all_readings, save_reading, save_meter
 from mbus_reader import read_meter
+from ttkbootstrap import Style
+from ttkbootstrap.constants import *
+import ttkbootstrap as ttk
 
 def launch_gui():
-    root = tk.Tk()
+    root = ttk.Window(themename="flatly")  # Start with a themed window
     root.title("Water Meter GUI")
+
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
-
     width = int(screen_width * 0.7)
     height = int(screen_height * 0.7)
-
-    # Center the window on the screen
     x = (screen_width - width) // 2
     y = (screen_height - height) // 2
-
     root.geometry(f"{width}x{height}+{x}+{y}")
-    root.configure(bg="#f0f4f8")
+    root.configure(bg="#ffffff")
 
-    # Define fonts
+    # Fonts
     title_font = font.Font(family="Helvetica", size=16, weight="bold")
     button_font = font.Font(family="Helvetica", size=12, weight="bold")
 
-    # Title label
-    title_label = tk.Label(root, text="Water Meter Readings", font=title_font, bg="#f0f4f8", fg="#333333")
-    title_label.pack(pady=(15, 10))
+    # Title
+    title_label = ttk.Label(root, text="Water Meter Readings", font=title_font, bootstyle="primary")
+    title_label.pack(pady=(20, 15))
 
-    # Table (Treeview)
+    # Treeview inside a frame for rounded look
+    tree_frame = ttk.Frame(root, bootstyle="secondary", padding=10)
+    tree_frame.pack(padx=20, pady=10, fill="both", expand=True)
+
     columns = ("meter_id", "timestamp", "usage")
-    tree = ttk.Treeview(root, columns=columns, show="headings")
+    tree = ttk.Treeview(tree_frame, columns=columns, show="headings", bootstyle="info")
+
     tree.heading("meter_id", text="Meter ID")
     tree.heading("timestamp", text="Timestamp")
     tree.heading("usage", text="Usage (m³)")
@@ -37,12 +41,24 @@ def launch_gui():
     for col in columns:
         tree.column(col, anchor="center", width=150)
 
-    tree.pack(padx=10, pady=10, fill="both", expand=True)
+    tree.pack(fill="both", expand=True)
+
+    # Table font styles and striped rows
+    style = Style()
+    style.configure("Treeview", font=("Helvetica", 12), rowheight=28)
+    style.configure("Treeview.Heading", font=("Helvetica", 13, "bold"))
+    style.map("Treeview", background=[("selected", "#4a90e2")])
+    style.layout("Treeview", [('Treeview.treearea', {'sticky': 'nswe'})])
+    # Enable striped rows
+    style.configure("Treeview", background="white", foreground="black", fieldbackground="white")
+    style.configure("Treeview", bordercolor="#d9d9d9", borderwidth=0.5, borderradius=4)
+    style.configure("Treeview", relief="flat")
+    style.configure("Treeview", highlightthickness=0)
+    style.configure("Treeview", padding=5)
 
     def update_table():
         for row in tree.get_children():
             tree.delete(row)
-
         readings = get_all_readings()
         if readings:
             for row in readings:
@@ -58,10 +74,9 @@ def launch_gui():
                 save_meter(meter_id)
                 save_reading(meter_id, timestamp, usage)
                 update_table()
-        # Optionally: handle/display errors
 
     def read_all_meters():
-        meter_ids = [1, 2, 3]  # Replace with actual IDs
+        meter_ids = [1, 2, 3]
         for meter_id in meter_ids:
             data = read_meter(meter_id)
             if data:
@@ -73,27 +88,17 @@ def launch_gui():
                     save_reading(meter_id, timestamp, usage)
         update_table()
 
-    # Buttons
-    btn_frame = tk.Frame(root, bg="#f0f4f8")
-    btn_frame.pack(pady=(5, 15))
+    # Button frame
+    btn_frame = ttk.Frame(root, bootstyle="light")
+    btn_frame.pack(pady=(10, 20))
 
-    # Load button
-    btn_load = tk.Button(btn_frame, text="Load All Readings", font=button_font, command=update_table,
-                        bg="#4a90e2", fg="white", activebackground="#357ABD", activeforeground="white",
-                        relief="flat", padx=10, pady=5)
-    btn_load.pack(side="left", padx=5)
+    btn_load = ttk.Button(btn_frame, text="Load All Readings", bootstyle="primary", command=update_table)
+    btn_load.pack(side="left", padx=8, ipadx=10, ipady=5)
 
-    # Read new meter button
-    btn_read = tk.Button(btn_frame, text="Read New Meter", font=button_font, command=read_new_meter,
-                        bg="#50C878", fg="white", activebackground="#3AAE5B", activeforeground="white",
-                        relief="flat", padx=10, pady=5)
-    btn_read.pack(side="left", padx=5)
+    btn_read = ttk.Button(btn_frame, text="Read New Meter", bootstyle="success", command=read_new_meter)
+    btn_read.pack(side="left", padx=8, ipadx=10, ipady=5)
 
-    # Read all meters button
-    btn_read_all = tk.Button(btn_frame, text="Read All Meters", font=button_font, command=read_all_meters,
-                            bg="#FFA500", fg="white", activebackground="#E69500", activeforeground="white",
-                            relief="flat", padx=10, pady=5)
-    btn_read_all.pack(side="left", padx=5)
-
+    btn_read_all = ttk.Button(btn_frame, text="Read All Meters", bootstyle="warning", command=read_all_meters)
+    btn_read_all.pack(side="left", padx=8, ipadx=10, ipady=5)
 
     root.mainloop()

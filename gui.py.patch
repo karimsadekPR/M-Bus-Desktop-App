@@ -1,0 +1,72 @@
+title_label = tk.Label(root, text="Water Meter Readings", font=title_font, bg="#000000", fg="#FFFFFF")
+    title_label.pack(pady=(15, 10))
+
+    # Treeview inside a frame for rounded look
+    tree_frame = ttk.Frame(root, bootstyle="secondary", padding=1)
+    tree_frame.pack(padx=20, pady=10, fill="both", expand=True)
+=======
+    # Title
+    title_label = ttk.Label(root, text="Water Meter Readings", font=title_font, bootstyle="primary")
+    title_label.pack(pady=(20, 15))
+
+    # Treeview inside a frame for rounded look
+    tree_frame = ttk.Frame(root, bootstyle="secondary", padding=10)
+    tree_frame.pack(padx=20, pady=10, fill="both", expand=True)
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+    tree = ttk.Treeview(tree_frame, columns=columns, show="headings", bootstyle="info")
+
+    tree.heading("meter_id", text="Meter ID")
+    tree.heading("timestamp", text="Timestamp")
+    tree.heading("usage", text="Usage (m³)")
+
+    for col in columns:
+        tree.column(col, anchor="center", width=150)
+
+    tree.pack(fill="both", expand=True)
+=======
+    tree = ttk.Treeview(tree_frame, columns=columns, show="headings", bootstyle="info striped")
+
+    tree.heading("meter_id", text="Meter ID")
+    tree.heading("timestamp", text="Timestamp")
+    tree.heading("usage", text="Usage (m³)")
+
+    for col in columns:
+        tree.column(col, anchor="center", width=150)
+
+    tree.pack(fill="both", expand=True)
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+    # Button frame
+    btn_frame = tk.Frame(root, bg="#f0f4f8")
+    btn_frame.pack(pady=(5, 15))
+
+    btn_load = tk.Button(btn_frame, text="Load All Readings", font=button_font, command=update_table,
+                         bg="#4a90e2", fg="white", activebackground="#357ABD", activeforeground="white",
+                         relief="flat", padx=10, pady=5)
+    btn_load.pack(side="left", padx=5)
+
+    btn_read = tk.Button(btn_frame, text="Read New Meter", font=button_font, command=read_new_meter,
+                         bg="#50C878", fg="white", activebackground="#3AAE5B", activeforeground="white",
+                         relief="flat", padx=10, pady=5)
+    btn_read.pack(side="left", padx=5)
+
+    btn_read_all = tk.Button(btn_frame, text="Read All Meters", font=button_font, command=read_all_meters,
+                             bg="#FFA500", fg="white", activebackground="#E69500", activeforeground="white",
+                             relief="flat", padx=10, pady=5)
+    btn_read_all.pack(side="left", padx=5)
+=======
+    # Button frame
+    btn_frame = ttk.Frame(root, bootstyle="light")
+    btn_frame.pack(pady=(10, 20))
+
+    btn_load = ttk.Button(btn_frame, text="Load All Readings", bootstyle="primary", command=update_table)
+    btn_load.pack(side="left", padx=8, ipadx=10, ipady=5)
+
+    btn_read = ttk.Button(btn_frame, text="Read New Meter", bootstyle="success", command=read_new_meter)
+    btn_read.pack(side="left", padx=8, ipadx=10, ipady=5)
+
+    btn_read_all = ttk.Button(btn_frame, text="Read All Meters", bootstyle="warning", command=read_all_meters)
+    btn_read_all.pack(side="left", padx=8, ipadx=10, ipady=5)
