@@ -1,9 +1,10 @@
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QTableWidget,QLabel,QHeaderView,QPushButton,QComboBox,QTableWidgetItem, QMessageBox
+    QTableWidget,QLabel,QHeaderView,QPushButton,QComboBox,QTableWidgetItem,
+     QMessageBox, QDateEdit, QCheckBox
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QDate
 from database import get_all_readings, save_reading, save_meter
 from mbus_reader import read_meter
 
@@ -32,7 +33,7 @@ class WaterMeterGUI(QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         # Start with specific size (but allow resizing)
-        self.resize(1800, 900)  # 👈 Applies to the QMainWindow, not central_widget
+        self.resize(1000, 700)  # 👈 Applies to the QMainWindow, not central_widget
 
         # Main layout
         self.main_layout = QHBoxLayout()
@@ -79,6 +80,18 @@ class WaterMeterGUI(QMainWindow):
         self.btn_read_all.clicked.connect(self.read_all_meters)
         self.right_layout.addWidget(self.btn_read_all)
 
+        
+        self.ExportToCsv = QPushButton("Export to CSV")
+        self.ExportToCsv.setStyleSheet(btnStyle)
+        self.ExportToCsv.clicked.connect(self.Export_Csv)
+        self.right_layout.addWidget(self.ExportToCsv)
+
+        
+        self.ShowUsageChat = QPushButton("Show Usage Chat")
+        self.ShowUsageChat.setStyleSheet(btnStyle)
+        self.ShowUsageChat.clicked.connect(self.Show_Usage_Chat)
+        self.right_layout.addWidget(self.ShowUsageChat)
+
         self.sort_box = QComboBox()
         self.sort_box.addItems(["Meter ID", "Timestamp", "Value"])
         self.right_layout.addWidget(self.sort_box)
@@ -87,9 +100,45 @@ class WaterMeterGUI(QMainWindow):
         self.sort_button.clicked.connect(self.sort_table)
         self.right_layout.addWidget(self.sort_button)
 
+        # Add spacing
+        self.right_layout.addSpacing(10)
 
-        # ✅ Load data into table at start
-        self.update_table()
+        # Label
+        label = QLabel("Date From:")
+        self.right_layout.addWidget(label)
+
+        # Date layout: From and To
+        date_layout = QHBoxLayout()
+        self.date_from = QDateEdit()
+        self.date_from.setDate(QDate.currentDate())
+        self.date_from.setCalendarPopup(True)
+
+        self.date_to = QDateEdit()
+        self.date_to.setDate(QDate.currentDate())
+        self.date_to.setCalendarPopup(True)
+
+        date_layout.addWidget(self.date_from)
+        date_layout.addWidget(self.date_to)
+
+        self.right_layout.addLayout(date_layout)
+
+        # Checkbox
+        self.checkbox = QCheckBox("Date Selected")
+        self.right_layout.addWidget(self.checkbox)
+
+        # Filter button
+        self.filter_button = QPushButton("Filter")
+        self.filter_button.setStyleSheet(btnStyle)
+        self.filter_button.clicked.connect(self.filter_dates)
+        self.right_layout.addWidget(self.filter_button)
+
+
+    def filter_dates(self):
+        if self.checkbox.isChecked():
+            print("Filter applied from", self.date_from.date().toString(), "to", self.date_to.date().toString())
+        else:
+            print("Checkbox not selected.")
+
 
 
     def update_table(self):
@@ -143,6 +192,12 @@ class WaterMeterGUI(QMainWindow):
                     save_meter(meter_id)
                     save_reading(meter_id, timestamp, usage)
         self.update_table()
+
+    def Export_Csv():
+        return
+    
+    def Show_Usage_Chat():
+        return
 
 def launch_gui():
     app = QApplication(sys.argv)
