@@ -14,25 +14,29 @@ class WaterMeterGUI(QMainWindow):
         self.resize(900, 600)
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
-
-        self.layout = QVBoxLayout()
+        # Main horizontal layout: Left (title + table), Right (buttons)
+        self.layout = QHBoxLayout()
         self.central_widget.setLayout(self.layout)
+
+        # Left vertical layout: Title on top of table
+        self.left_layout = QVBoxLayout()
+        self.layout.addLayout(self.left_layout)
 
         # Title
         self.title_label = QLabel("Water Meter Readings")
         self.title_label.setAlignment(Qt.AlignCenter)
         self.title_label.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px;")
-        self.layout.addWidget(self.title_label)
+        self.left_layout.addWidget(self.title_label)
 
         # Table
         self.table = QTableWidget()
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["Meter ID", "Timestamp", "Usage (m³)"])
         self.table.horizontalHeader().setStretchLastSection(True)
-        self.layout.addWidget(self.table)
+        self.left_layout.addWidget(self.table)
 
-        # Buttons
-        self.button_layout = QHBoxLayout()
+        # Right vertical layout: Buttons
+        self.button_layout = QVBoxLayout()
         self.layout.addLayout(self.button_layout)
 
         self.btn_load = QPushButton("Load All Readings")
@@ -47,7 +51,9 @@ class WaterMeterGUI(QMainWindow):
         self.btn_read_all.clicked.connect(self.read_all_meters)
         self.button_layout.addWidget(self.btn_read_all)
 
+        # Update table initially
         self.update_table()
+
 
     def update_table(self):
         self.table.setRowCount(0)
