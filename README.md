@@ -23,3 +23,5 @@ Why: Useful in live monitoring scenarios.
 Add a graph view (e.g., line chart of usage over time).
 Button label: Show Usage Chart
 Why: Great for spotting trends, anomalies, or peak usage periods.
+
+6. ENG - TUR (LAN)
