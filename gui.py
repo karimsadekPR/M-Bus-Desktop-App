@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton, QTableWidget, QTableWidgetItem, QMessageBox, QHeaderView
+    QTableWidget,QLabel,QHeaderView,QPushButton,QComboBox,QTableWidgetItem
 )
 from PyQt5.QtCore import Qt
 from database import get_all_readings, save_reading, save_meter
@@ -11,24 +11,20 @@ class WaterMeterGUI(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Water Meter GUI")
-        self.resize(1800, 900)
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
-        # Main horizontal layout: Left (title + table), Right (buttons)
-        self.layout = QHBoxLayout()
-        self.central_widget.setLayout(self.layout)
+        self.main_layout = QHBoxLayout()
+        self.central_widget.setLayout(self.main_layout)
 
-        # Left vertical layout: Title on top of table
+        # ✅ Left Layout (Title + Table)
         self.left_layout = QVBoxLayout()
-        self.layout.addLayout(self.left_layout)
+        self.main_layout.addLayout(self.left_layout)
 
-        # Title
         self.title_label = QLabel("Water Meter Readings")
         self.title_label.setAlignment(Qt.AlignCenter)
         self.title_label.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
         self.left_layout.addWidget(self.title_label)
 
-        # Table
         self.table = QTableWidget()
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["Meter ID", "Timestamp", "Usage (m³)"])
@@ -38,9 +34,9 @@ class WaterMeterGUI(QMainWindow):
         self.table.setFixedWidth(1000)
         self.left_layout.addWidget(self.table)
 
-        # Right vertical layout: Buttons
-        self.button_layout = QVBoxLayout()
-        self.layout.addLayout(self.button_layout)
+        # ✅ Right Layout (Buttons + Filters)
+        self.right_layout = QVBoxLayout()
+        self.main_layout.addLayout(self.right_layout)
 
         self.btn_load = QPushButton("Load All Readings")
         self.btn_load.setStyleSheet(
@@ -48,7 +44,7 @@ class WaterMeterGUI(QMainWindow):
             "border: 1px solid gray; border-radius: 2px;"
         )
         self.btn_load.clicked.connect(self.update_table)
-        self.button_layout.addWidget(self.btn_load)
+        self.right_layout.addWidget(self.btn_load)
 
         self.btn_read = QPushButton("Read New Meter")
         self.btn_read.setStyleSheet(
@@ -56,7 +52,7 @@ class WaterMeterGUI(QMainWindow):
             "border: 1px solid gray; border-radius: 2px;"
         )
         self.btn_read.clicked.connect(self.read_new_meter)
-        self.button_layout.addWidget(self.btn_read)
+        self.right_layout.addWidget(self.btn_read)
 
         self.btn_read_all = QPushButton("Read All Meters")
         self.btn_read_all.setStyleSheet(
@@ -64,9 +60,18 @@ class WaterMeterGUI(QMainWindow):
             "border: 1px solid gray; border-radius: 2px;"
         )
         self.btn_read_all.clicked.connect(self.read_all_meters)
-        self.button_layout.addWidget(self.btn_read_all)
+        self.right_layout.addWidget(self.btn_read_all)
 
-        # Update table initially
+        self.sort_box = QComboBox()
+        self.sort_box.addItems(["Meter ID", "Timestamp", "Value"])
+        self.right_layout.addWidget(self.sort_box)
+
+        self.sort_button = QPushButton("Sort")
+        self.sort_button.clicked.connect(self.sort_table)
+        self.right_layout.addWidget(self.sort_button)
+
+
+        # ✅ Load data into table at start
         self.update_table()
 
 
@@ -80,6 +85,19 @@ class WaterMeterGUI(QMainWindow):
                 self.table.setItem(row, 0, QTableWidgetItem(str(row_data[1])))
                 self.table.setItem(row, 1, QTableWidgetItem(str(row_data[2])))
                 self.table.setItem(row, 2, QTableWidgetItem(str(row_data[3])))
+                
+    def sort_table(self):
+        sort_by = self.sort_box.currentText()
+        column_index = 0
+
+        if sort_by == "Meter ID":
+            column_index = 0
+        elif sort_by == "Timestamp":
+            column_index = 1
+        elif sort_by == "Value":
+            column_index = 2
+
+        self.table.sortItems(column_index, Qt.AscendingOrder)
 
     def read_new_meter(self):
         data = read_meter(3)
