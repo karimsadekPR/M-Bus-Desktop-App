@@ -1,81 +1,81 @@
-import tkinter as tk
-from tkinter import font
+import sys
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QLabel, QPushButton, QTableWidget, QTableWidgetItem, QMessageBox
+)
+from PyQt5.QtCore import Qt
 from database import get_all_readings, save_reading, save_meter
 from mbus_reader import read_meter
-from ttkbootstrap import Style
-from ttkbootstrap.constants import *
-import ttkbootstrap as ttk
 
-def launch_gui():
-    root = ttk.Window(themename="flatly")  # Start with a themed window
-    root.title("Water Meter GUI")
+class WaterMeterGUI(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Water Meter GUI")
+        self.resize(900, 600)
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
 
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    width = int(screen_width * 0.7)
-    height = int(screen_height * 0.7)
-    x = (screen_width - width) // 2
-    y = (screen_height - height) // 2
-    root.geometry(f"{width}x{height}+{x}+{y}")
-    root.configure(bg="#ffffff")
+        self.layout = QVBoxLayout()
+        self.central_widget.setLayout(self.layout)
 
-    # Fonts
-    title_font = font.Font(family="Helvetica", size=16, weight="bold")
-    button_font = font.Font(family="Helvetica", size=12, weight="bold")
+        # Title
+        self.title_label = QLabel("Water Meter Readings")
+        self.title_label.setAlignment(Qt.AlignCenter)
+        self.title_label.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px;")
+        self.layout.addWidget(self.title_label)
 
-    # Title
-    title_label = ttk.Label(root, text="Water Meter Readings", font=title_font, bootstyle="primary")
-    title_label.pack(pady=(20, 15))
+        # Table
+        self.table = QTableWidget()
+        self.table.setColumnCount(3)
+        self.table.setHorizontalHeaderLabels(["Meter ID", "Timestamp", "Usage (m³)"])
+        self.table.horizontalHeader().setStretchLastSection(True)
+        self.layout.addWidget(self.table)
 
-    # Treeview inside a frame for rounded look
-    tree_frame = ttk.Frame(root, bootstyle="secondary", padding=10)
-    tree_frame.pack(padx=20, pady=10, fill="both", expand=True)
+        # Buttons
+        self.button_layout = QHBoxLayout()
+        self.layout.addLayout(self.button_layout)
 
-    columns = ("meter_id", "timestamp", "usage")
-    tree = ttk.Treeview(tree_frame, columns=columns, show="headings", bootstyle="info")
+        self.btn_load = QPushButton("Load All Readings")
+        self.btn_load.clicked.connect(self.update_table)
+        self.button_layout.addWidget(self.btn_load)
 
-    tree.heading("meter_id", text="Meter ID")
-    tree.heading("timestamp", text="Timestamp")
-    tree.heading("usage", text="Usage (m³)")
+        self.btn_read = QPushButton("Read New Meter")
+        self.btn_read.clicked.connect(self.read_new_meter)
+        self.button_layout.addWidget(self.btn_read)
 
-    for col in columns:
-        tree.column(col, anchor="center", width=150)
+        self.btn_read_all = QPushButton("Read All Meters")
+        self.btn_read_all.clicked.connect(self.read_all_meters)
+        self.button_layout.addWidget(self.btn_read_all)
 
-    tree.pack(fill="both", expand=True)
+        self.update_table()
 
-    # Table font styles and striped rows
-    style = Style()
-    style.configure("Treeview", font=("Helvetica", 12), rowheight=28)
-    style.configure("Treeview.Heading", font=("Helvetica", 13, "bold"))
-    style.map("Treeview", background=[("selected", "#4a90e2")])
-    style.layout("Treeview", [('Treeview.treearea', {'sticky': 'nswe'})])
-    # Enable striped rows
-    style.configure("Treeview", background="white", foreground="black", fieldbackground="white")
-    style.configure("Treeview", bordercolor="#d9d9d9", borderwidth=0.5, borderradius=4)
-    style.configure("Treeview", relief="flat")
-    style.configure("Treeview", highlightthickness=0)
-    style.configure("Treeview", padding=5)
-
-    def update_table():
-        for row in tree.get_children():
-            tree.delete(row)
+    def update_table(self):
+        self.table.setRowCount(0)
         readings = get_all_readings()
         if readings:
-            for row in readings:
-                tree.insert("", tk.END, values=(row[1], row[2], row[3]))
+            for row_data in readings:
+                row = self.table.rowCount()
+                self.table.insertRow(row)
+                self.table.setItem(row, 0, QTableWidgetItem(str(row_data[1])))
+                self.table.setItem(row, 1, QTableWidgetItem(str(row_data[2])))
+                self.table.setItem(row, 2, QTableWidgetItem(str(row_data[3])))
 
-    def read_new_meter():
+    def read_new_meter(self):
         data = read_meter(3)
         if data:
             timestamp = data.get("timestamp")
             usage = data.get("value")
-            meter_id = data.get('id')
+            meter_id = data.get("id")
             if timestamp and usage is not None:
                 save_meter(meter_id)
                 save_reading(meter_id, timestamp, usage)
-                update_table()
+                self.update_table()
+            else:
+                QMessageBox.warning(self, "Warning", "Incomplete meter data received.")
+        else:
+            QMessageBox.warning(self, "Warning", "Failed to read meter data.")
 
-    def read_all_meters():
+    def read_all_meters(self):
         meter_ids = [1, 2, 3]
         for meter_id in meter_ids:
             data = read_meter(meter_id)
@@ -86,19 +86,13 @@ def launch_gui():
                 if timestamp and usage is not None:
                     save_meter(meter_id)
                     save_reading(meter_id, timestamp, usage)
-        update_table()
+        self.update_table()
 
-    # Button frame
-    btn_frame = ttk.Frame(root, bootstyle="light")
-    btn_frame.pack(pady=(10, 20))
+def launch_gui():
+    app = QApplication(sys.argv)
+    window = WaterMeterGUI()
+    window.show()
+    sys.exit(app.exec_())
 
-    btn_load = ttk.Button(btn_frame, text="Load All Readings", bootstyle="primary", command=update_table)
-    btn_load.pack(side="left", padx=8, ipadx=10, ipady=5)
-
-    btn_read = ttk.Button(btn_frame, text="Read New Meter", bootstyle="success", command=read_new_meter)
-    btn_read.pack(side="left", padx=8, ipadx=10, ipady=5)
-
-    btn_read_all = ttk.Button(btn_frame, text="Read All Meters", bootstyle="warning", command=read_all_meters)
-    btn_read_all.pack(side="left", padx=8, ipadx=10, ipady=5)
-
-    root.mainloop()
+if __name__ == "__main__":
+    launch_gui()
