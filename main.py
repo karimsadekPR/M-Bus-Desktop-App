@@ -17,3 +17,4 @@ init_db()
     
 # Launch GUI
 launch_gui()
+    

@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton, QTableWidget, QTableWidgetItem, QMessageBox
+    QLabel, QPushButton, QTableWidget, QTableWidgetItem, QMessageBox, QHeaderView
 )
 from PyQt5.QtCore import Qt
 from database import get_all_readings, save_reading, save_meter
@@ -11,7 +11,7 @@ class WaterMeterGUI(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Water Meter GUI")
-        self.resize(900, 600)
+        self.resize(1800, 900)
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         # Main horizontal layout: Left (title + table), Right (buttons)
@@ -25,14 +25,17 @@ class WaterMeterGUI(QMainWindow):
         # Title
         self.title_label = QLabel("Water Meter Readings")
         self.title_label.setAlignment(Qt.AlignCenter)
-        self.title_label.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px;")
+        self.title_label.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
         self.left_layout.addWidget(self.title_label)
 
         # Table
         self.table = QTableWidget()
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["Meter ID", "Timestamp", "Usage (m³)"])
-        self.table.horizontalHeader().setStretchLastSection(True)
+
+        # Make all columns stretch evenly
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.setFixedWidth(1000)
         self.left_layout.addWidget(self.table)
 
         # Right vertical layout: Buttons
@@ -40,14 +43,26 @@ class WaterMeterGUI(QMainWindow):
         self.layout.addLayout(self.button_layout)
 
         self.btn_load = QPushButton("Load All Readings")
+        self.btn_load.setStyleSheet(
+            "font-size: 18px; margin: 20px; padding: 10px; "
+            "border: 1px solid gray; border-radius: 2px;"
+        )
         self.btn_load.clicked.connect(self.update_table)
         self.button_layout.addWidget(self.btn_load)
 
         self.btn_read = QPushButton("Read New Meter")
+        self.btn_read.setStyleSheet(
+            "font-size: 18px; margin: 20px; padding: 10px; "
+            "border: 1px solid gray; border-radius: 2px;"
+        )
         self.btn_read.clicked.connect(self.read_new_meter)
         self.button_layout.addWidget(self.btn_read)
 
         self.btn_read_all = QPushButton("Read All Meters")
+        self.btn_read_all.setStyleSheet(
+            "font-size: 18px; margin: 20px; padding: 10px; "
+            "border: 1px solid gray; border-radius: 2px;"
+        )
         self.btn_read_all.clicked.connect(self.read_all_meters)
         self.button_layout.addWidget(self.btn_read_all)
 
