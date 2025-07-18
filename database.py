@@ -56,3 +56,17 @@ def get_meter_ById(meterId):
     row = cur.fetchone()
     conn.close()
     return row
+
+def get_filter_date(StartDate, EndDate):
+    conn = sqlite3.connect('meter_data.db')
+    cur = conn.cursor()
+    cur.execute('''
+                SELECT * FROM readings
+                WHERE timestamp BETWEEN ? AND ?
+                ORDER BY water_usage DESC
+                ''', (StartDate, EndDate))
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+

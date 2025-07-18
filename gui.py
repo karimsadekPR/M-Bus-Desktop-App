@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
      QMessageBox, QDateEdit, QCheckBox
 )
 from PyQt5.QtCore import Qt, QDate
-from database import get_all_readings, save_reading, save_meter
+from database import get_all_readings, save_reading, save_meter, get_filter_date
 from mbus_reader import read_meter
 
 btnStyle = """
@@ -112,10 +112,12 @@ class WaterMeterGUI(QMainWindow):
         self.date_from = QDateEdit()
         self.date_from.setDate(QDate.currentDate())
         self.date_from.setCalendarPopup(True)
+        self.date_from.setDisplayFormat("yyyy-MM-dd")
 
         self.date_to = QDateEdit()
         self.date_to.setDate(QDate.currentDate())
         self.date_to.setCalendarPopup(True)
+        self.date_to.setDisplayFormat("yyyy-MM-dd")
 
         date_layout.addWidget(self.date_from)
         date_layout.addWidget(self.date_to)
@@ -134,10 +136,27 @@ class WaterMeterGUI(QMainWindow):
 
 
     def filter_dates(self):
-        if self.checkbox.isChecked():
-            print("Filter applied from", self.date_from.date().toString(), "to", self.date_to.date().toString())
+        # Always clear the table when filter is applied
+        self.table.setRowCount(0)
+
+        # Get filtered readings
+        readings = get_filter_date(
+            self.date_from.date().toString("yyyy-MM-dd"),
+            self.date_to.date().toString("yyyy-MM-dd")
+        )
+
+        if readings:
+            for row_data in readings:
+                row = self.table.rowCount()
+                self.table.insertRow(row)
+                self.table.setItem(row, 0, QTableWidgetItem(str(row_data[1])))
+                self.table.setItem(row, 1, QTableWidgetItem(str(row_data[2])))
+                self.table.setItem(row, 2, QTableWidgetItem(str(row_data[3])))
+
+            print("Filter applied from", self.date_from.date().toString("yyyy-MM-dd"),
+                "to", self.date_to.date().toString("yyyy-MM-dd"))
         else:
-            print("Checkbox not selected.")
+            print("No readings found for selected date range.")
 
 
 
@@ -151,7 +170,7 @@ class WaterMeterGUI(QMainWindow):
                 self.table.setItem(row, 0, QTableWidgetItem(str(row_data[1])))
                 self.table.setItem(row, 1, QTableWidgetItem(str(row_data[2])))
                 self.table.setItem(row, 2, QTableWidgetItem(str(row_data[3])))
-                
+                  
     def sort_table(self):
         sort_by = self.sort_box.currentText()
         column_index = 0
