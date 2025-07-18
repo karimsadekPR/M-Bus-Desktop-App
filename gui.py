@@ -1,20 +1,44 @@
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QTableWidget,QLabel,QHeaderView,QPushButton,QComboBox,QTableWidgetItem
+    QTableWidget,QLabel,QHeaderView,QPushButton,QComboBox,QTableWidgetItem, QMessageBox
 )
 from PyQt5.QtCore import Qt
 from database import get_all_readings, save_reading, save_meter
 from mbus_reader import read_meter
 
+btnStyle = """
+QPushButton {
+    font-size: 16px;
+    padding: 10px;
+    margin: 5px;
+    border: 1px solid #555;
+    border-radius: 6px;
+    background-color: #e6e6e6;
+}
+
+QPushButton:hover {
+    background-color: #d4d4d4;
+    border: 1px solid #333;
+}
+"""
+
 class WaterMeterGUI(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Water Meter GUI")
+        # Set up central widget
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
+
+        # Start with specific size (but allow resizing)
+        self.resize(1800, 900)  # 👈 Applies to the QMainWindow, not central_widget
+
+        # Main layout
         self.main_layout = QHBoxLayout()
         self.central_widget.setLayout(self.main_layout)
+
+
 
         # ✅ Left Layout (Title + Table)
         self.left_layout = QVBoxLayout()
@@ -38,27 +62,20 @@ class WaterMeterGUI(QMainWindow):
         self.right_layout = QVBoxLayout()
         self.main_layout.addLayout(self.right_layout)
 
+        self.right_layout.addStretch()
+        
         self.btn_load = QPushButton("Load All Readings")
-        self.btn_load.setStyleSheet(
-            "font-size: 18px; margin: 20px; padding: 10px; "
-            "border: 1px solid gray; border-radius: 2px;"
-        )
+        self.btn_load.setStyleSheet(btnStyle)
         self.btn_load.clicked.connect(self.update_table)
         self.right_layout.addWidget(self.btn_load)
 
         self.btn_read = QPushButton("Read New Meter")
-        self.btn_read.setStyleSheet(
-            "font-size: 18px; margin: 20px; padding: 10px; "
-            "border: 1px solid gray; border-radius: 2px;"
-        )
+        self.btn_read.setStyleSheet(btnStyle)
         self.btn_read.clicked.connect(self.read_new_meter)
         self.right_layout.addWidget(self.btn_read)
 
         self.btn_read_all = QPushButton("Read All Meters")
-        self.btn_read_all.setStyleSheet(
-            "font-size: 18px; margin: 20px; padding: 10px; "
-            "border: 1px solid gray; border-radius: 2px;"
-        )
+        self.btn_read_all.setStyleSheet(btnStyle)
         self.btn_read_all.clicked.connect(self.read_all_meters)
         self.right_layout.addWidget(self.btn_read_all)
 
