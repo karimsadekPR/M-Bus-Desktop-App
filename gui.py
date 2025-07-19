@@ -56,7 +56,7 @@ class WaterMeterGUI(QMainWindow):
 
         # Make all columns stretch evenly
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.table.setFixedWidth(1000)
+        self.table.setFixedWidth(1500)
         self.left_layout.addWidget(self.table)
 
         # ✅ Right Layout (Buttons + Filters)
