@@ -2,7 +2,7 @@ import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTableWidget,QLabel,QHeaderView,QPushButton,QComboBox,QTableWidgetItem,
-     QMessageBox, QDateEdit, QCheckBox
+     QMessageBox, QDateEdit, QCheckBox, QLineEdit
 )
 from PyQt5.QtCore import Qt, QDate
 from database import get_all_readings, save_reading, save_meter, get_filter_date
@@ -128,37 +128,63 @@ class WaterMeterGUI(QMainWindow):
         self.checkbox = QCheckBox("Date Selected")
         self.right_layout.addWidget(self.checkbox)
 
+        #Filter by a specific option
+        self.filter_box = QComboBox()
+        self.filter_box.addItems(["Meter ID", "Timestamp", "Value"])
+        self.right_layout.addWidget(self.filter_box)
+
+        self.filter_input = QLineEdit()
+        self.filter_input.setPlaceholderText("Enter filter value...")
+        self.right_layout.addWidget(self.filter_input)
+
         # Filter button
         self.filter_button = QPushButton("Filter")
         self.filter_button.setStyleSheet(btnStyle)
-        self.filter_button.clicked.connect(self.filter_dates)
+        self.filter_button.clicked.connect(self.apply_all_filters)
         self.right_layout.addWidget(self.filter_button)
 
+    def apply_all_filters(self):
+        # Step 1: Load all readings from DB
+        readings = get_all_readings()
 
-    def filter_dates(self):
-        # Always clear the table when filter is applied
+        # Step 2: Filter by date range
+        date_from_str = self.date_from.date().toString("yyyy-MM-dd")
+        date_to_str = self.date_to.date().toString("yyyy-MM-dd")
+
+        # Filter only if user selected dates
+        if self.date_from and self.date_to:
+            readings = [
+                row for row in readings
+                if date_from_str <= row[2][:10] <= date_to_str
+            ]
+
+        # Step 3: Filter by selected value (Meter ID, Timestamp, Value)
+        filter_type = self.filter_box.currentText()
+        filter_value = self.filter_input.text().strip()
+
+        if filter_value:
+            if filter_type == "Meter ID":
+                readings = [row for row in readings if str(row[1]) == filter_value]
+            elif filter_type == "Timestamp":
+                readings = [row for row in readings if filter_value in row[2]]
+            elif filter_type == "Value":
+                try:
+                    val = float(filter_value)
+                    readings = [row for row in readings if float(row[3]) == val]
+                except:
+                    readings = []
+
+        # Step 4: Display the filtered results
         self.table.setRowCount(0)
 
-        # Get filtered readings
-        readings = get_filter_date(
-            self.date_from.date().toString("yyyy-MM-dd"),
-            self.date_to.date().toString("yyyy-MM-dd")
-        )
+        for row_data in readings:
+            row = self.table.rowCount()
+            self.table.insertRow(row)
+            self.table.setItem(row, 0, QTableWidgetItem(str(row_data[1])))  # meter ID
+            self.table.setItem(row, 1, QTableWidgetItem(str(row_data[2])))  # timestamp
+            self.table.setItem(row, 2, QTableWidgetItem(str(row_data[3])))  # value
 
-        if readings:
-            for row_data in readings:
-                row = self.table.rowCount()
-                self.table.insertRow(row)
-                self.table.setItem(row, 0, QTableWidgetItem(str(row_data[1])))
-                self.table.setItem(row, 1, QTableWidgetItem(str(row_data[2])))
-                self.table.setItem(row, 2, QTableWidgetItem(str(row_data[3])))
-
-            print("Filter applied from", self.date_from.date().toString("yyyy-MM-dd"),
-                "to", self.date_to.date().toString("yyyy-MM-dd"))
-        else:
-            print("No readings found for selected date range.")
-
-
+        print(f"Filtered {len(readings)} result(s).")
 
     def update_table(self):
         self.table.setRowCount(0)
