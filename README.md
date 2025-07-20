@@ -20,8 +20,15 @@ UI Addition: A checkbox: Auto-refresh every 10s
 Why: Useful in live monitoring scenarios.
 
 5. Graphical Visualization
-Add a graph view (e.g., line chart of usage over time).
+Add a graph view (e.g., line chart of usage over time). with the mean for a day, week, month, year (if available)
 Button label: Show Usage Chart
 Why: Great for spotting trends, anomalies, or peak usage periods.
 
 6. ENG - TUR (LAN)
+
+7. A homePage that only contains the recent readings of all meters with basic
+buttons and GUI with a text "Last reading was at: 22/9/2025 - 2:00:00
+
+8. login and register window with GUI and text boxes for user name and password, this should also andle if the user is admin or not, so the admin can see all the readings of all meters and the normal user can only see the readings of his /her meter(s) assigned to him/her. 
+
+
