@@ -101,6 +101,21 @@ class WaterMeterGUI(QMainWindow):
         table.setColumnCount(4)
         table.setHorizontalHeaderLabels([ "Select" ,"Meter ID", "Timestamp", "Usage (m³)"])
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+        header = table.horizontalHeader()
+         # Column 0: Checkbox — auto-size
+        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+
+        # Column 1: Meter ID — fixed width
+        header.setSectionResizeMode(1, QHeaderView.Fixed)
+        table.setColumnWidth(1, 100)
+
+        # Column 2: Timestamp — stretch
+        header.setSectionResizeMode(2, QHeaderView.Stretch)
+
+        # Column 3: Usage — stretch
+        header.setSectionResizeMode(3, QHeaderView.Stretch)
+        
         return table
     
     def setup_right_panel_for_Home(self):
@@ -219,10 +234,12 @@ class WaterMeterGUI(QMainWindow):
 
     def populate_table(self, readings: list[tuple], table: QTableWidget):
         table.setRowCount(0)
+        table.setColumnWidth(1, 100)
+        table.setColumnWidth(2, 150)
+        table.setColumnWidth(3, 100)
+        
         for row_data in readings:
-            print(row_data)
             row = table.rowCount()
-            print(row)
             table.insertRow(row)
 
             # Checkbox in first column

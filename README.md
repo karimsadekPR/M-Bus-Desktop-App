@@ -9,12 +9,12 @@ Enable users to filter readings by a date range or specific Meter ID.
 UI Addition: A couple of date pickers and a dropdown/search box.
 Why: Helps focus on relevant data without manual scrolling.
 
-3. Delete Selected Reading(s)
+3. Delete Selected Reading(s) (DONE)
 Let users remove erroneous or test entries from the table.
 Button label: Delete Selected
 Why: Necessary for data correction or cleaning.
 
-4. Real-Time Reading Updates (Auto Refresh)
+4. Real-Time Reading Updates (Auto Refresh) 
 Enable an auto-refresh toggle to pull in new readings every X seconds.
 UI Addition: A checkbox: Auto-refresh every 10s
 Why: Useful in live monitoring scenarios.
