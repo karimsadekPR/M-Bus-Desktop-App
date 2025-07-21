@@ -1,11 +1,12 @@
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QTableWidget,QLabel,QHeaderView,QPushButton,QComboBox,QTableWidgetItem,
-     QMessageBox, QDateEdit, QCheckBox, QLineEdit
+    QTableWidget, QLabel, QHeaderView, QPushButton, QComboBox,
+    QTableWidgetItem, QMessageBox, QDateEdit, QCheckBox, QLineEdit,
+    QTabWidget
 )
 from PyQt5.QtCore import Qt, QDate
-from database import get_all_readings, save_reading, save_meter, get_filter_date
+from database import get_all_readings, save_reading, save_meter
 from mbus_reader import read_meter
 
 btnStyle = """
@@ -17,7 +18,6 @@ QPushButton {
     border-radius: 6px;
     background-color: #e6e6e6;
 }
-
 QPushButton:hover {
     background-color: #d4d4d4;
     border: 1px solid #333;
@@ -27,44 +27,82 @@ QPushButton:hover {
 class WaterMeterGUI(QMainWindow):
     def __init__(self):
         super().__init__()
+
         self.setWindowTitle("Water Meter GUI")
-        # Set up central widget
+        self.resize(1500, 700)
+
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 
-        # Start with specific size (but allow resizing)
-        self.resize(1000, 700)  # 👈 Applies to the QMainWindow, not central_widget
-
-        # Main layout
         self.main_layout = QHBoxLayout()
         self.central_widget.setLayout(self.main_layout)
 
-
-
-        # ✅ Left Layout (Title + Table)
-        self.left_layout = QVBoxLayout()
-        self.main_layout.addLayout(self.left_layout)
-
-        self.title_label = QLabel("Water Meter Readings")
-        self.title_label.setAlignment(Qt.AlignCenter)
-        self.title_label.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
-        self.left_layout.addWidget(self.title_label)
-
-        self.table = QTableWidget()
-        self.table.setColumnCount(3)
-        self.table.setHorizontalHeaderLabels(["Meter ID", "Timestamp", "Usage (m³)"])
-
-        # Make all columns stretch evenly
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.table.setFixedWidth(1500)
-        self.left_layout.addWidget(self.table)
-
-        # ✅ Right Layout (Buttons + Filters)
+        self.right_container = QWidget()
         self.right_layout = QVBoxLayout()
-        self.main_layout.addLayout(self.right_layout)
+        self.right_container.setLayout(self.right_layout)
+        self.main_layout.addWidget(self.right_container)
 
+        self.tab_widget = QTabWidget()
+        self.main_layout.addWidget(self.tab_widget)
+
+        self.home_tab = QWidget()
+        self.advanced_tab = QWidget()
+        self.settings_tab = QWidget()
+
+        self.tab_widget.addTab(self.home_tab, "Home")
+        self.tab_widget.addTab(self.advanced_tab, "Advanced")
+        self.tab_widget.addTab(self.settings_tab, "Settings")
+
+        self.tab_widget.currentChanged.connect(self.on_tab_changed)
+
+        self.setup_home_tab()
+        self.setup_advanced_tab()
+        self.setup_settings_tab()
+
+    # ---------- Setup Tabs ----------
+
+    def setup_home_tab(self):
+        layout = QVBoxLayout()
+        self.home_tab.setLayout(layout)
+
+        title = QLabel("Water Meter Readings")
+        title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
+        layout.addWidget(title)
+
+        self.home_table = self.create_table()
+        layout.addWidget(self.home_table)
+
+    def setup_advanced_tab(self):
+        layout = QVBoxLayout()
+        self.advanced_tab.setLayout(layout)
+
+        title = QLabel("Advanced Water Meter Readings")
+        title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
+        layout.addWidget(title)
+
+        self.advanced_table = self.create_table()
+        layout.addWidget(self.advanced_table)
+
+    def setup_settings_tab(self):
+        layout = QVBoxLayout()
+        self.settings_tab.setLayout(layout)
+
+        label = QLabel("Settings configuration goes here.")
+        label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(label)
+
+    def create_table(self) -> QTableWidget:
+        table = QTableWidget()
+        table.setColumnCount(3)
+        table.setHorizontalHeaderLabels(["Meter ID", "Timestamp", "Usage (m³)"])
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        return table
+
+    def setup_right_panel_for_advanced(self):
         self.right_layout.addStretch()
-        
+
         self.btn_load = QPushButton("Load All Readings")
         self.btn_load.setStyleSheet(btnStyle)
         self.btn_load.clicked.connect(self.update_table)
@@ -80,17 +118,15 @@ class WaterMeterGUI(QMainWindow):
         self.btn_read_all.clicked.connect(self.read_all_meters)
         self.right_layout.addWidget(self.btn_read_all)
 
-        
-        self.ExportToCsv = QPushButton("Export to CSV")
-        self.ExportToCsv.setStyleSheet(btnStyle)
-        self.ExportToCsv.clicked.connect(self.Export_Csv)
-        self.right_layout.addWidget(self.ExportToCsv)
+        self.export_btn = QPushButton("Export to CSV")
+        self.export_btn.setStyleSheet(btnStyle)
+        self.export_btn.clicked.connect(self.export_csv)
+        self.right_layout.addWidget(self.export_btn)
 
-        
-        self.ShowUsageChat = QPushButton("Show Usage Chat")
-        self.ShowUsageChat.setStyleSheet(btnStyle)
-        self.ShowUsageChat.clicked.connect(self.Show_Usage_Chat)
-        self.right_layout.addWidget(self.ShowUsageChat)
+        self.usage_chart_btn = QPushButton("Show Usage Chart")
+        self.usage_chart_btn.setStyleSheet(btnStyle)
+        self.usage_chart_btn.clicked.connect(self.show_usage_chart)
+        self.right_layout.addWidget(self.usage_chart_btn)
 
         self.sort_box = QComboBox()
         self.sort_box.addItems(["Meter ID", "Timestamp", "Value"])
@@ -100,35 +136,25 @@ class WaterMeterGUI(QMainWindow):
         self.sort_button.clicked.connect(self.sort_table)
         self.right_layout.addWidget(self.sort_button)
 
-        # Add spacing
         self.right_layout.addSpacing(10)
+        self.right_layout.addWidget(QLabel("Date From:"))
 
-        # Label
-        label = QLabel("Date From:")
-        self.right_layout.addWidget(label)
-
-        # Date layout: From and To
         date_layout = QHBoxLayout()
-        self.date_from = QDateEdit()
-        self.date_from.setDate(QDate.currentDate())
+        self.date_from = QDateEdit(QDate.currentDate())
         self.date_from.setCalendarPopup(True)
         self.date_from.setDisplayFormat("yyyy-MM-dd")
 
-        self.date_to = QDateEdit()
-        self.date_to.setDate(QDate.currentDate())
+        self.date_to = QDateEdit(QDate.currentDate())
         self.date_to.setCalendarPopup(True)
         self.date_to.setDisplayFormat("yyyy-MM-dd")
 
         date_layout.addWidget(self.date_from)
         date_layout.addWidget(self.date_to)
-
         self.right_layout.addLayout(date_layout)
 
-        # Checkbox
         self.checkbox = QCheckBox("Date Selected")
         self.right_layout.addWidget(self.checkbox)
 
-        #Filter by a specific option
         self.filter_box = QComboBox()
         self.filter_box.addItems(["Meter ID", "Timestamp", "Value"])
         self.right_layout.addWidget(self.filter_box)
@@ -137,112 +163,128 @@ class WaterMeterGUI(QMainWindow):
         self.filter_input.setPlaceholderText("Enter filter value...")
         self.right_layout.addWidget(self.filter_input)
 
-        # Filter button
         self.filter_button = QPushButton("Filter")
         self.filter_button.setStyleSheet(btnStyle)
         self.filter_button.clicked.connect(self.apply_all_filters)
         self.right_layout.addWidget(self.filter_button)
 
-    def apply_all_filters(self):
-        # Step 1: Load all readings from DB
-        readings = get_all_readings()
+    def clear_layout(self, layout):
+        if layout is not None:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.setParent(None)
+                elif item.layout() is not None:
+                    self.clear_layout(item.layout())
 
-        # Step 2: Filter by date range
-        date_from_str = self.date_from.date().toString("yyyy-MM-dd")
-        date_to_str = self.date_to.date().toString("yyyy-MM-dd")
+    def on_tab_changed(self, index):
+        tab_name = self.tab_widget.tabText(index)
+        print(f"Switched to tab: {tab_name}")
+        self.clear_layout(self.right_layout)
 
-        # Filter only if user selected dates
-        if self.date_from and self.date_to:
-            readings = [
-                row for row in readings
-                if date_from_str <= row[2][:10] <= date_to_str
-            ]
+        if tab_name == "Home":
+            self.update_table()
 
-        # Step 3: Filter by selected value (Meter ID, Timestamp, Value)
-        filter_type = self.filter_box.currentText()
-        filter_value = self.filter_input.text().strip()
+        elif tab_name == "Advanced":
+            self.setup_right_panel_for_advanced()
+            self.update_table()
 
-        if filter_value:
-            if filter_type == "Meter ID":
-                readings = [row for row in readings if str(row[1]) == filter_value]
-            elif filter_type == "Timestamp":
-                readings = [row for row in readings if filter_value in row[2]]
-            elif filter_type == "Value":
-                try:
-                    val = float(filter_value)
-                    readings = [row for row in readings if float(row[3]) == val]
-                except:
-                    readings = []
+        elif tab_name == "Settings":
+            self.right_layout.addWidget(QLabel("Settings Panel Placeholder"))
 
-        # Step 4: Display the filtered results
-        self.table.setRowCount(0)
-
+    def populate_table(self, readings: list[tuple], table: QTableWidget):
+        table.setRowCount(0)
         for row_data in readings:
-            row = self.table.rowCount()
-            self.table.insertRow(row)
-            self.table.setItem(row, 0, QTableWidgetItem(str(row_data[1])))  # meter ID
-            self.table.setItem(row, 1, QTableWidgetItem(str(row_data[2])))  # timestamp
-            self.table.setItem(row, 2, QTableWidgetItem(str(row_data[3])))  # value
+            row = table.rowCount()
+            table.insertRow(row)
+            table.setItem(row, 0, QTableWidgetItem(str(row_data[1])))
+            table.setItem(row, 1, QTableWidgetItem(str(row_data[2])))
+            table.setItem(row, 2, QTableWidgetItem(str(row_data[3])))
+
+    def update_table(self):
+        readings = get_all_readings()
+        current_tab = self.tab_widget.currentWidget()
+        if current_tab == self.home_tab:
+            self.populate_table(readings, self.home_table)
+        elif current_tab == self.advanced_tab:
+            self.populate_table(readings, self.advanced_table)
+
+    def apply_all_filters(self):
+        readings = get_all_readings()
+        readings = self.filter_by_date(readings)
+        readings = self.filter_by_input(readings)
+
+        current_tab = self.tab_widget.currentWidget()
+        if current_tab == self.home_tab:
+            self.populate_table(readings, self.home_table)
+        elif current_tab == self.advanced_tab:
+            self.populate_table(readings, self.advanced_table)
 
         print(f"Filtered {len(readings)} result(s).")
 
-    def update_table(self):
-        self.table.setRowCount(0)
-        readings = get_all_readings()
-        if readings:
-            for row_data in readings:
-                row = self.table.rowCount()
-                self.table.insertRow(row)
-                self.table.setItem(row, 0, QTableWidgetItem(str(row_data[1])))
-                self.table.setItem(row, 1, QTableWidgetItem(str(row_data[2])))
-                self.table.setItem(row, 2, QTableWidgetItem(str(row_data[3])))
-                  
     def sort_table(self):
         sort_by = self.sort_box.currentText()
-        column_index = 0
+        column_index = {"Meter ID": 0, "Timestamp": 1, "Value": 2}.get(sort_by, 0)
 
-        if sort_by == "Meter ID":
-            column_index = 0
-        elif sort_by == "Timestamp":
-            column_index = 1
-        elif sort_by == "Value":
-            column_index = 2
+        current_tab = self.tab_widget.currentWidget()
+        if current_tab == self.home_tab:
+            self.home_table.sortItems(column_index, Qt.AscendingOrder)
+        elif current_tab == self.advanced_tab:
+            self.advanced_table.sortItems(column_index, Qt.AscendingOrder)
 
-        self.table.sortItems(column_index, Qt.AscendingOrder)
-
-    def read_new_meter(self):
-        data = read_meter(3)
+    def read_and_save_meter(self, meter_id: int) -> bool:
+        data = read_meter(meter_id)
         if data:
             timestamp = data.get("timestamp")
             usage = data.get("value")
-            meter_id = data.get("id")
             if timestamp and usage is not None:
                 save_meter(meter_id)
                 save_reading(meter_id, timestamp, usage)
-                self.update_table()
-            else:
-                QMessageBox.warning(self, "Warning", "Incomplete meter data received.")
+                return True
+        return False
+
+    def read_new_meter(self):
+        if self.read_and_save_meter(3):
+            self.update_table()
         else:
             QMessageBox.warning(self, "Warning", "Failed to read meter data.")
 
     def read_all_meters(self):
-        meter_ids = [1, 2, 3]
-        for meter_id in meter_ids:
-            data = read_meter(meter_id)
-            if data:
-                timestamp = data.get("timestamp")
-                usage = data.get("value")
-                meter_id = data.get("id")
-                if timestamp and usage is not None:
-                    save_meter(meter_id)
-                    save_reading(meter_id, timestamp, usage)
+        for meter_id in [1, 2, 3]:
+            self.read_and_save_meter(meter_id)
         self.update_table()
 
-    def Export_Csv():
-        return
-    
-    def Show_Usage_Chat():
-        return
+    def filter_by_date(self, readings: list[tuple]) -> list[tuple]:
+        if not self.checkbox.isChecked():
+            return readings
+        date_from = self.date_from.date().toString("yyyy-MM-dd")
+        date_to = self.date_to.date().toString("yyyy-MM-dd")
+        return [r for r in readings if date_from <= r[2][:10] <= date_to]
+
+    def filter_by_input(self, readings: list[tuple]) -> list[tuple]:
+        filter_type = self.filter_box.currentText()
+        value = self.filter_input.text().strip()
+        if not value:
+            return readings
+        if filter_type == "Meter ID":
+            return [r for r in readings if str(r[1]) == value]
+        elif filter_type == "Timestamp":
+            return [r for r in readings if value in r[2]]
+        elif filter_type == "Value":
+            try:
+                return [r for r in readings if float(r[3]) == float(value)]
+            except ValueError:
+                return []
+        return readings
+
+    def export_csv(self):
+        QMessageBox.information(self, "Info", "Export to CSV is not yet implemented.")
+
+    def show_usage_chart(self):
+        QMessageBox.information(self, "Info", "Usage chart feature is not yet implemented.")
+
+# ---------- Run App ----------
 
 def launch_gui():
     app = QApplication(sys.argv)
