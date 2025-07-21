@@ -1,13 +1,14 @@
-import sys
+import sys, csv
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTableWidget, QLabel, QHeaderView, QPushButton, QComboBox,
     QTableWidgetItem, QMessageBox, QDateEdit, QCheckBox, QLineEdit,
-    QTabWidget
+    QTabWidget, QFileDialog, QMessageBox
 )
 from PyQt5.QtCore import Qt, QDate
 from database import get_all_readings, save_reading, save_meter
 from mbus_reader import read_meter
+
 
 btnStyle = """
 QPushButton {
@@ -52,12 +53,14 @@ class WaterMeterGUI(QMainWindow):
         self.tab_widget.addTab(self.home_tab, "Home")
         self.tab_widget.addTab(self.advanced_tab, "Advanced")
         self.tab_widget.addTab(self.settings_tab, "Settings")
-
+        
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
 
         self.setup_home_tab()
         self.setup_advanced_tab()
         self.setup_settings_tab()
+
+        self.setup_right_panel_for_Home()
 
     # ---------- Setup Tabs ----------
 
@@ -99,6 +102,15 @@ class WaterMeterGUI(QMainWindow):
         table.setHorizontalHeaderLabels(["Meter ID", "Timestamp", "Usage (m³)"])
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         return table
+    
+    def setup_right_panel_for_Home(self):
+        self.right_layout.addStretch()
+
+        self.btn_load = QPushButton("Load All Readings")
+        self.btn_load.setStyleSheet(btnStyle)
+        self.btn_load.clicked.connect(self.update_table)
+        self.right_layout.addWidget(self.btn_load)
+
 
     def setup_right_panel_for_advanced(self):
         self.right_layout.addStretch()
@@ -120,7 +132,7 @@ class WaterMeterGUI(QMainWindow):
 
         self.export_btn = QPushButton("Export to CSV")
         self.export_btn.setStyleSheet(btnStyle)
-        self.export_btn.clicked.connect(self.export_csv)
+        self.export_btn.clicked.connect(self.export_table_to_csv)
         self.right_layout.addWidget(self.export_btn)
 
         self.usage_chart_btn = QPushButton("Show Usage Chart")
@@ -184,6 +196,7 @@ class WaterMeterGUI(QMainWindow):
         self.clear_layout(self.right_layout)
 
         if tab_name == "Home":
+            self.setup_right_panel_for_Home()
             self.update_table()
 
         elif tab_name == "Advanced":
@@ -278,8 +291,48 @@ class WaterMeterGUI(QMainWindow):
                 return []
         return readings
 
-    def export_csv(self):
-        QMessageBox.information(self, "Info", "Export to CSV is not yet implemented.")
+        
+    def export_table_to_csv(self):
+        current_tab = self.tab_widget.currentWidget()
+        if current_tab == self.home_tab:
+            table = self.home_table
+        elif current_tab == self.advanced_tab:
+            table = self.advanced_table
+        else:
+            QMessageBox.warning(self, "Export Failed", "No exportable table in this tab.")
+            return
+
+        options = QFileDialog.Options()
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save CSV",
+            "",
+            "CSV Files (*.csv);;All Files (*)",
+            options=options
+        )
+        
+        if file_path:
+            try:
+                with open(file_path, mode='w', newline='', encoding='utf-8') as file:
+                    writer = csv.writer(file)
+
+                    # Write header row (optional)
+                    headers = [table.horizontalHeaderItem(col).text()
+                            for col in range(table.columnCount())]
+                    writer.writerow(headers)
+
+                    # Write data rows
+                    for row in range(table.rowCount()):
+                        row_data = []
+                        for col in range(table.columnCount()):
+                            item = table.item(row, col)
+                            row_data.append(item.text() if item else "")
+                        writer.writerow(row_data)
+
+                QMessageBox.information(self, "Export Successful", "Table data exported successfully!")
+            
+            except Exception as e:
+                QMessageBox.critical(self, "Export Failed", f"An error occurred:\n{str(e)}")
 
     def show_usage_chart(self):
         QMessageBox.information(self, "Info", "Usage chart feature is not yet implemented.")
