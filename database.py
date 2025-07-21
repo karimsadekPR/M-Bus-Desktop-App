@@ -69,4 +69,13 @@ def get_filter_date(StartDate, EndDate):
     conn.close()
     return rows
 
+def delete_meter(meter_id, meter_value, meter_time):
+    conn = sqlite3.connect('meter_data.db')
+    cur = conn.cursor()
+    cur.execute('DELETE FROM readings WHERE meterId = ? AND timestamp = ? AND water_usage = ?', (meter_id, meter_time, meter_value))
+    conn.commit()
+    conn.close()
+
+
+
 

@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
     QTabWidget, QFileDialog, QMessageBox
 )
 from PyQt5.QtCore import Qt, QDate
-from database import get_all_readings, save_reading, save_meter
+from database import get_all_readings, save_reading, save_meter, delete_meter
 from mbus_reader import read_meter
 
 
@@ -98,8 +98,8 @@ class WaterMeterGUI(QMainWindow):
 
     def create_table(self) -> QTableWidget:
         table = QTableWidget()
-        table.setColumnCount(3)
-        table.setHorizontalHeaderLabels(["Meter ID", "Timestamp", "Usage (m³)"])
+        table.setColumnCount(4)
+        table.setHorizontalHeaderLabels([ "Select" ,"Meter ID", "Timestamp", "Usage (m³)"])
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         return table
     
@@ -110,6 +110,12 @@ class WaterMeterGUI(QMainWindow):
         self.btn_load.setStyleSheet(btnStyle)
         self.btn_load.clicked.connect(self.update_table)
         self.right_layout.addWidget(self.btn_load)
+
+        self.btn_delete = QPushButton("Delete")
+        self.btn_delete.setStyleSheet(btnStyle)
+        self.btn_delete.clicked.connect(self.delete_selected_rows)
+        self.right_layout.addWidget(self.btn_delete)
+
 
 
     def setup_right_panel_for_advanced(self):
@@ -139,6 +145,11 @@ class WaterMeterGUI(QMainWindow):
         self.usage_chart_btn.setStyleSheet(btnStyle)
         self.usage_chart_btn.clicked.connect(self.show_usage_chart)
         self.right_layout.addWidget(self.usage_chart_btn)
+
+        self.btn_delete = QPushButton("Delete")
+        self.btn_delete.setStyleSheet(btnStyle)
+        self.btn_delete.clicked.connect(self.delete_selected_rows)
+        self.right_layout.addWidget(self.btn_delete)
 
         self.sort_box = QComboBox()
         self.sort_box.addItems(["Meter ID", "Timestamp", "Value"])
@@ -209,11 +220,20 @@ class WaterMeterGUI(QMainWindow):
     def populate_table(self, readings: list[tuple], table: QTableWidget):
         table.setRowCount(0)
         for row_data in readings:
+            print(row_data)
             row = table.rowCount()
+            print(row)
             table.insertRow(row)
-            table.setItem(row, 0, QTableWidgetItem(str(row_data[1])))
-            table.setItem(row, 1, QTableWidgetItem(str(row_data[2])))
-            table.setItem(row, 2, QTableWidgetItem(str(row_data[3])))
+
+            # Checkbox in first column
+            checkbox_item = QTableWidgetItem()
+            checkbox_item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
+            checkbox_item.setCheckState(Qt.Unchecked)
+            table.setItem(row, 0, checkbox_item)
+
+            table.setItem(row, 1, QTableWidgetItem(str(row_data[1])))
+            table.setItem(row, 2, QTableWidgetItem(str(row_data[2])))
+            table.setItem(row, 3, QTableWidgetItem(str(row_data[3])))
 
     def update_table(self):
         readings = get_all_readings()
@@ -291,7 +311,58 @@ class WaterMeterGUI(QMainWindow):
                 return []
         return readings
 
-        
+    def checkbox_clicked(self): 
+        print(self.checkbox_clicked)
+
+    def delete_selected_rows(self):
+        current_tab = self.tab_widget.currentWidget()
+        table = None
+
+        if current_tab == self.home_tab:
+            table = self.home_table
+        elif current_tab == self.advanced_tab:
+            table = self.advanced_table
+
+        if not table:
+            return
+
+        rows_to_delete = []
+
+        for row in range(table.rowCount()):
+            item = table.item(row, 0)
+            if item and item.checkState() == Qt.Checked:
+                rows_to_delete.append(row)
+
+        if not rows_to_delete:
+            QMessageBox.information(self, "No Selection", "No meters selected for deletion.")
+            return
+
+        confirm = QMessageBox.question(
+            self,
+            "Confirm Deletion",
+            f"Are you sure you want to delete {len(rows_to_delete)} selected meter(s)? This will also remove readings from the database.",
+            QMessageBox.Yes | QMessageBox.No
+        )
+
+        if confirm == QMessageBox.Yes:
+            for row in reversed(rows_to_delete):
+                meter_id_item = table.item(row, 1)
+                meter_time_item = table.item(row, 2)
+                meter_value_item = table.item(row, 3)
+                if meter_id_item:
+                    try:
+                        meter_id = int(meter_id_item.text())
+                        meter_value = float(meter_value_item.text())
+                        meter_time = meter_time_item.text()
+                        delete_meter(meter_id, meter_value, meter_time)
+                        print(f"Deleted meter ID: {meter_id}")
+                    except Exception as e:
+                        print(f"Error deleting meter: {e}")
+                table.removeRow(row)
+
+            QMessageBox.information(self, "Deleted", "Selected meters deleted from table and database.")
+
+
     def export_table_to_csv(self):
         current_tab = self.tab_widget.currentWidget()
         if current_tab == self.home_tab:
