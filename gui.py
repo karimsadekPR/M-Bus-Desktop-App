@@ -32,7 +32,7 @@ class WaterMeterGUI(QMainWindow):
         self.setWindowTitle("Water Meter GUI")
         self.resize(1500, 700)
 
-        self.central_widget = QWidget()
+        self.central_widget = QWidget() 
         self.setCentralWidget(self.central_widget)
 
         self.main_layout = QHBoxLayout()
@@ -41,14 +41,17 @@ class WaterMeterGUI(QMainWindow):
         self.right_container = QWidget()
         self.right_layout = QVBoxLayout()
         self.right_container.setLayout(self.right_layout)
-        self.main_layout.addWidget(self.right_container)
 
         self.tab_widget = QTabWidget()
+
+        # Swap the order here
         self.main_layout.addWidget(self.tab_widget)
+        self.main_layout.addWidget(self.right_container)
 
         self.home_tab = QWidget()
         self.advanced_tab = QWidget()
         self.settings_tab = QWidget()
+
 
         self.tab_widget.addTab(self.home_tab, "Home")
         self.tab_widget.addTab(self.advanced_tab, "Advanced")
@@ -103,17 +106,12 @@ class WaterMeterGUI(QMainWindow):
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         header = table.horizontalHeader()
-         # Column 0: Checkbox — auto-size
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-
-        # Column 1: Meter ID — fixed width
         header.setSectionResizeMode(1, QHeaderView.Fixed)
+
         table.setColumnWidth(1, 100)
-
-        # Column 2: Timestamp — stretch
+        
         header.setSectionResizeMode(2, QHeaderView.Stretch)
-
-        # Column 3: Usage — stretch
         header.setSectionResizeMode(3, QHeaderView.Stretch)
         
         return table
