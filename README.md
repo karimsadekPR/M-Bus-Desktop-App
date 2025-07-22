@@ -29,6 +29,11 @@ Why: Great for spotting trends, anomalies, or peak usage periods.
 7. A homePage that only contains the recent readings of all meters with basic
 buttons and GUI with a text "Last reading was at: 22/9/2025 - 2:00:00 (DONE)
 
-8. login and register window with GUI and text boxes for user name and password, this should also andle if the user is admin or not, so the admin can see all the readings of all meters and the normal user can only see the readings of his /her meter(s) assigned to him/her. 
+8. login and register window with GUI and text boxes for user name and password, this should also andle if the user is admin or not, so the admin can see all the readings of all meters and the normal user can only see the readings of his /her meter(s) assigned to him/her.
+
+9. Auto refresh settings toggle
+
+10. 
+
 
 
