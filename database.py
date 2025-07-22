@@ -1,4 +1,5 @@
 import sqlite3
+import datetime
 
 def init_db():
     conn = sqlite3.connect('meter_data.db')
@@ -76,6 +77,27 @@ def delete_meter(meter_id, meter_value, meter_time):
     conn.commit()
     conn.close()
 
+
+def get_last_7_days():
+    conn = sqlite3.connect('meter_data.db')
+    cur = conn.cursor()
+
+    # Calculate the day 7 days ago
+    today = datetime.date.today()
+    seven_days_ago = today - datetime.timedelta(days=7)
+
+    # Corrected SQL query (no nested cur.execute)
+    cur.execute('''
+        SELECT DATE(timestamp) as day, SUM(water_usage) as total_usage
+        FROM readings
+        WHERE timestamp BETWEEN ? AND ?
+        GROUP BY DATE(timestamp)
+        ORDER BY day ASC
+        ''', (seven_days_ago, today))
+
+    rows = cur.fetchall()
+    conn.close()
+    return rows
 
 
 
