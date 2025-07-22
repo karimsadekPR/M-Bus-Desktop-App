@@ -32,7 +32,7 @@ class WaterMeterGUI(QMainWindow):
         self.setWindowTitle("Water Meter GUI")
         self.resize(1500, 700)
 
-        self.central_widget = QWidget() 
+        self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 
         self.main_layout = QHBoxLayout()
@@ -41,17 +41,14 @@ class WaterMeterGUI(QMainWindow):
         self.right_container = QWidget()
         self.right_layout = QVBoxLayout()
         self.right_container.setLayout(self.right_layout)
+        self.main_layout.addWidget(self.right_container)
 
         self.tab_widget = QTabWidget()
-
-        # Swap the order here
         self.main_layout.addWidget(self.tab_widget)
-        self.main_layout.addWidget(self.right_container)
 
         self.home_tab = QWidget()
         self.advanced_tab = QWidget()
         self.settings_tab = QWidget()
-
 
         self.tab_widget.addTab(self.home_tab, "Home")
         self.tab_widget.addTab(self.advanced_tab, "Advanced")
@@ -90,14 +87,15 @@ class WaterMeterGUI(QMainWindow):
 
         self.advanced_table = self.create_table()
         layout.addWidget(self.advanced_table)
-
+        
     def setup_settings_tab(self):
         layout = QVBoxLayout()
         self.settings_tab.setLayout(layout)
 
-        label = QLabel("Settings configuration goes here.")
-        label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(label)
+        title = QLabel("Settings")
+        title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
+        layout.addWidget(title)
 
     def create_table(self) -> QTableWidget:
         table = QTableWidget()
@@ -106,12 +104,17 @@ class WaterMeterGUI(QMainWindow):
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         header = table.horizontalHeader()
+         # Column 0: Checkbox — auto-size
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.Fixed)
 
+        # Column 1: Meter ID — fixed width
+        header.setSectionResizeMode(1, QHeaderView.Fixed)
         table.setColumnWidth(1, 100)
-        
+
+        # Column 2: Timestamp — stretch
         header.setSectionResizeMode(2, QHeaderView.Stretch)
+
+        # Column 3: Usage — stretch
         header.setSectionResizeMode(3, QHeaderView.Stretch)
         
         return table
@@ -203,6 +206,8 @@ class WaterMeterGUI(QMainWindow):
         self.filter_button.setStyleSheet(btnStyle)
         self.filter_button.clicked.connect(self.apply_all_filters)
         self.right_layout.addWidget(self.filter_button)
+
+    #def setup_right_panel_for_settings(self):
 
     def clear_layout(self, layout):
         if layout is not None:
