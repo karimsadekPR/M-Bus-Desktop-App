@@ -44,9 +44,11 @@ class WaterMeterGUI(QMainWindow):
 
         self.tab_widget = QTabWidget()
 
-        # Swap the order here
         self.main_layout.addWidget(self.tab_widget)
         self.main_layout.addWidget(self.right_container)
+        
+        self.right_container.setFixedWidth(300)
+
 
         self.home_tab = QWidget()
         self.advanced_tab = QWidget()
