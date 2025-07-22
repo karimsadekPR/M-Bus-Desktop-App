@@ -44,7 +44,16 @@ class WaterMeterGUI(QMainWindow):
         self.main_layout.addWidget(self.right_container)
 
         self.tab_widget = QTabWidget()
+<<<<<<< HEAD
         self.main_layout.addWidget(self.tab_widget)
+=======
+
+        self.main_layout.addWidget(self.tab_widget)
+        self.main_layout.addWidget(self.right_container)
+        
+        self.right_container.setFixedWidth(300)
+
+>>>>>>> 8eca410fa78a7bfbfbabbeaa02c3075ecf2bc4d8
 
         self.home_tab = QWidget()
         self.advanced_tab = QWidget()
