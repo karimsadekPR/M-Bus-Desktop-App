@@ -56,16 +56,19 @@ class WaterMeterGUI(QMainWindow):
         self.home_tab = QWidget()
         self.advanced_tab = QWidget()
         self.settings_tab = QWidget()
+        self.graphical_visualization  = QWidget()
 
         self.tab_widget.addTab(self.home_tab, "Home")
         self.tab_widget.addTab(self.advanced_tab, "Advanced")
         self.tab_widget.addTab(self.settings_tab, "Settings")
+        self.tab_widget.addTab(self.graphical_visualization, "Graphical Visualization")
         
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
 
         self.setup_home_tab()
         self.setup_advanced_tab()
         self.setup_settings_tab()
+        self.setup_graphical_visualization_tab()
 
         self.setup_right_panel_for_Home()
 
@@ -102,6 +105,15 @@ class WaterMeterGUI(QMainWindow):
         title = QLabel("Settings")
         title.setAlignment(Qt.AlignCenter)
         title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
+        layout.addWidget(title)
+
+    def setup_graphical_visualization_tab(self):
+        layout = QVBoxLayout()
+        self.graphical_visualization.setLayout(layout)
+
+        title = QLabel("Graphical Visualization")
+        title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20 px; padding: 10px;")
         layout.addWidget(title)
 
     def create_table(self) -> QTableWidget:
