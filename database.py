@@ -17,6 +17,25 @@ def init_db():
             meterId INTEGER
         )
     ''')
+    conn.execute('''
+        CREATE TABLE telegrams (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        raw_hex TEXT,
+        meter_id INTEGER,
+        length INTEGER,
+        ci_field TEXT
+        )
+    ''')
+    conn.close()
+
+
+def set_row_telegram(raw_hex, meter_id, length, ci_field):
+    conn = sqlite3.connect('meter_data.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO telegrams (raw_hex, meter_id, length, ci_field) VALUES (?, ?, ?, ?)",
+              (raw_hex,meter_id,length,ci_field))
+    conn.commit()
     conn.close()
 
 def save_reading(meterId, timestamp, value):

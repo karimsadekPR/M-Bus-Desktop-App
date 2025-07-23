@@ -117,19 +117,12 @@ class WaterMeterGUI(QMainWindow):
         self.graphical_chart = self.create_graphical_chart()
         layout.addWidget(self.graphical_chart)
 
-    
     def create_graphical_chart(self):
         last_7_days = get_last_7_days()
 
-        # Debug print
-        for day in last_7_days:
-            print(day)
-
-        # Extract days and usage
         days = [row[0] for row in last_7_days]
         usage = [row[1] for row in last_7_days]
 
-        # Create figure and axis
         fig = Figure(figsize=(12, 6))
         ax = fig.add_subplot(111)
 
@@ -143,20 +136,17 @@ class WaterMeterGUI(QMainWindow):
         ax.set_xlabel("Date")
         ax.set_ylabel("Total Usage (m³)")
 
-        ax.set_yscale('log')  # ✅ Add this line
+        ax.set_yscale('log')  
 
         ax.grid(True, linestyle='--', alpha=0.6)
         ax.legend()
 
-        # Create canvas
         canvas = FigureCanvas(fig)
         canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         canvas.updateGeometry()
 
         return canvas
-
- 
-
+    
     def create_table(self) -> QTableWidget:
         table = QTableWidget()
         table.setColumnCount(4)
@@ -278,7 +268,7 @@ class WaterMeterGUI(QMainWindow):
             self.update_table()
         elif tab_name == "Settings":
             self.right_layout.addWidget(QLabel("Settings Panel Placeholder"))
-
+        
     def populate_table(self, readings: list[tuple], table: QTableWidget):
         table.setRowCount(0)
         for row_data in readings:
