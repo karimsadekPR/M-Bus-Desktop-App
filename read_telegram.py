@@ -1,31 +1,19 @@
 import serial
+import time
 
-def read_all_telegrams_from_serial(port="COM3", baudrate=2400, timeout=2, max_telegrams=300):
-    """
-    Reads raw telegrams from M-Bus serial port and returns a list of telegram bytes.
-    """
-    print("📡 Reading M-Bus telegrams...")
-    telegrams = []
+def read_all_telegrams_from_serial():
+        
+    ser = serial.Serial('COM6', baudrate=2400, parity=serial.PARITY_EVEN, timeout=1)
 
-    try:
-        with serial.Serial(port, baudrate, timeout=timeout) as ser:
-            while len(telegrams) < max_telegrams:
-                buffer = bytearray()
-                while True:
-                    byte = ser.read(1)
-                    if not byte:
-                        break  # timeout or no data
-                    buffer += byte
-                    if byte == b'\x16':  # End of telegram
-                        break
+    # Send REQ_UD2 to address 1
+    ser.write(bytes([0x10, 0x5B, 0x01, 0x5B, 0x16]))
 
-                if buffer:
-                    telegrams.append(bytes(buffer))
-                else:
-                    print("⚠️ No data or timeout.")
-    except KeyboardInterrupt:
-        print("\n🛑 Reading stopped by user.")
-    except serial.SerialException as e:
-        print(f"Serial error: {e}")
+    time.sleep(0.5)
 
-    return telegrams
+    # Read response
+    response = ser.read(256)
+    print("Raw response:", response.hex())
+
+    ser.close()
+
+    return response.hex()
