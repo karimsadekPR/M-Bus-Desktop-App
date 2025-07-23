@@ -119,9 +119,12 @@ class WaterMeterGUI(QMainWindow):
 
     def create_graphical_chart(self):
         last_7_days = get_last_7_days()
+       # print(last_7_days)
 
         days = [row[0] for row in last_7_days]
         usage = [row[1] for row in last_7_days]
+
+        print(last_7_days, days, usage)
 
         fig = Figure(figsize=(12, 6))
         ax = fig.add_subplot(111)

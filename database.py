@@ -104,6 +104,7 @@ def get_last_7_days():
     # Calculate the day 7 days ago
     today = datetime.date.today()
     seven_days_ago = today - datetime.timedelta(days=7)
+    print(today,seven_days_ago)
 
     # Corrected SQL query (no nested cur.execute)
     cur.execute('''
