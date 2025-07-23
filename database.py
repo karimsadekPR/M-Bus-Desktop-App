@@ -18,7 +18,7 @@ def init_db():
         )
     ''')
     conn.execute('''
-        CREATE TABLE telegrams (
+        CREATE TABLE IF NOT EXISTS telegrams (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
         raw_hex TEXT,

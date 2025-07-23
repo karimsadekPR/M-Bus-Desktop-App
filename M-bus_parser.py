@@ -43,7 +43,7 @@ def process_telegrams(raw_telegrams):
 
 
 def main():
-    raw_telegrams = read_all_telegrams_from_serial(max_telegrams=3)
+    raw_telegrams = read_all_telegrams_from_serial()
     process_telegrams(raw_telegrams)
 
 if __name__ == "__main__":

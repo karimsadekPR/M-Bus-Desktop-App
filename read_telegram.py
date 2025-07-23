@@ -1,6 +1,6 @@
 import serial
 
-def read_all_telegrams_from_serial(port="COM3", baudrate=2400, timeout=2, max_telegrams=5):
+def read_all_telegrams_from_serial(port="COM3", baudrate=2400, timeout=2, max_telegrams=300):
     """
     Reads raw telegrams from M-Bus serial port and returns a list of telegram bytes.
     """
