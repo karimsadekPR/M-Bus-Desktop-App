@@ -106,25 +106,31 @@ class WaterMeterGUI(QMainWindow):
         layout.addWidget(title)
 
     def setup_graphical_visualization_tab(self):
-        layout = QVBoxLayout()
-        self.graphical_visualization.setLayout(layout)
+        if not hasattr(self, 'graphical_layout'):
+            self.graphical_layout = QVBoxLayout()
+            self.graphical_visualization.setLayout(self.graphical_layout)
 
-        title = QLabel("Graphical Visualization")
-        title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet("font-size: 20px; font-weight: bold; padding: 10px;")
-        layout.addWidget(title)
+            title = QLabel("Graphical Visualization")
+            title.setAlignment(Qt.AlignCenter)
+            title.setStyleSheet("font-size: 20px; font-weight: bold; padding: 10px;")
+            self.graphical_layout.addWidget(title)
+
+        if hasattr(self, 'graphical_chart') and self.graphical_chart:
+            self.graphical_layout.removeWidget(self.graphical_chart)
+            self.graphical_chart.setParent(None)
 
         self.graphical_chart = self.create_graphical_chart()
-        layout.addWidget(self.graphical_chart)
+        self.graphical_layout.addWidget(self.graphical_chart)
+
 
     def create_graphical_chart(self):
         last_7_days = get_last_7_days()
-       # print(last_7_days)
+        print(last_7_days)
 
         days = [row[0] for row in last_7_days]
         usage = [row[1] for row in last_7_days]
 
-        print(last_7_days, days, usage)
+        #print(last_7_days, days, usage)
 
         fig = Figure(figsize=(12, 6))
         ax = fig.add_subplot(111)
@@ -271,6 +277,9 @@ class WaterMeterGUI(QMainWindow):
             self.update_table()
         elif tab_name == "Settings":
             self.right_layout.addWidget(QLabel("Settings Panel Placeholder"))
+        elif tab_name == "Graphical Visualization":
+            self.setup_graphical_visualization_tab()
+
         
     def populate_table(self, readings: list[tuple], table: QTableWidget):
         table.setRowCount(0)
