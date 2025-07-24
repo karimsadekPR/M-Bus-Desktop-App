@@ -33,9 +33,12 @@ def init_db():
 def set_row_telegram(raw_hex, meter_id, length, ci_field):
     conn = sqlite3.connect('meter_data.db')
     c = conn.cursor()
-    c.execute("INSERT INTO telegrams (raw_hex, meter_id, length, ci_field) VALUES (?, ?, ?, ?)",
-              (raw_hex,meter_id,length,ci_field))
-    conn.commit()
+    c.execute("select * from telegrams where meter_id = ?", (meter_id,))
+    existing = c.fetchone()
+    if existing is None:
+        c.execute("INSERT INTO telegrams (raw_hex, meter_id, length, ci_field) VALUES (?, ?, ?, ?)",
+                (raw_hex,meter_id,length,ci_field))
+        conn.commit()
     conn.close()
 
 def save_reading(meterId, timestamp, value):
@@ -114,5 +117,10 @@ def get_last_7_days():
 
         rows = cur.fetchall()
     return rows
+
+def Add_new_reading():
+    conn = sqlite3.connect('meter_data.db')
+    cur = conn.cursor()
+    
 
 
