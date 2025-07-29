@@ -3,10 +3,17 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTableWidget, QLabel, QHeaderView, QPushButton, QComboBox,
     QTableWidgetItem, QMessageBox, QDateEdit, QCheckBox, QLineEdit,
+<<<<<<< HEAD
     QTabWidget, QFileDialog, QSizePolicy
 )
 from PyQt5.QtCore import Qt, QDate
 from database import get_all_readings, save_reading, save_meter, delete_meter, get_last_7_days
+=======
+    QTabWidget, QFileDialog, QMessageBox, QSpinBox, QAbstractButton,
+)
+from PyQt5.QtCore import Qt, QDate, QTimer
+from database import get_all_readings, save_reading, save_meter, delete_meter
+>>>>>>> 4034d9478e224cb3a361324ddad49fb5e1962514
 from mbus_reader import read_meter
 from datetime import datetime
 
@@ -30,6 +37,51 @@ QPushButton:hover {
     border: 1px solid #333;
 }
 """
+
+translations = {
+    'en': {
+        'btn_load': "Load All Readings",
+        'btn_read': "Read New Meter",
+        'btn_read_all': "Read All Meters",
+        'btn_delete': "Delete",
+        'btn_export': "Export to CSV",
+        'filter_button': "Filter",
+        'sort_button': "Sort",
+        "sort_box": ["Meter ID", "Timestamp", "Value"],
+        'lang_combo_0': "English",
+        'lang_combo_1': "Türkçe",
+        'auto_refresh_checkbox': "Enable Auto Refresh",
+        'window_title': "Water Meter GUI",
+        'home_title': "Water Meter Readings",
+        'advanced_title': "Advanced Water Meter Readings",
+        'refresh_interval_suffix': " sec",
+        'tab_0': "Home",
+        'tab_1': "Advanced",
+        'tab_2': "Settings",
+        # Add more as needed
+    },
+    'tr': {
+        'btn_load': "Tüm Verileri Yükle",
+        'btn_read': "Yeni Sayaç Oku",
+        'btn_read_all': "Tüm Sayaçları Oku",
+        'btn_delete': "Sil",
+        'btn_export': "CSV'ye aktar",
+        'filter_button': "Filtrele",
+        'sort_button': "Sırala",
+        "sort_box": ["Sayaç Kimliği", "Zaman Damgası", "Değer"],
+        'lang_combo_0': "İngilizce",
+        'lang_combo_1': "Türkçe",
+        'auto_refresh_checkbox': "Otomatik Yenilemeyi Etkinleştir",
+        'window_title': "Su Sayaçları Uygulaması",
+        'home_title': "Su Sayacı Okumaları",
+        'advanced_title': "Gelişmiş Su Sayaçı Okumaları",
+        'refresh_interval_suffix': " sn",
+        'tab_0': "Ana Sayfa",
+        'tab_1': "Gelişmiş",
+        'tab_2': "Ayarlar",
+        # Add more as needed
+    }
+}
 
 class WaterMeterGUI(QMainWindow):
     def __init__(self):
@@ -62,24 +114,35 @@ class WaterMeterGUI(QMainWindow):
         self.tab_widget.addTab(self.home_tab, "Home")
         self.tab_widget.addTab(self.advanced_tab, "Advanced")
         self.tab_widget.addTab(self.settings_tab, "Settings")
+<<<<<<< HEAD
         self.tab_widget.addTab(self.graphical_visualization, "Graphical Visualization")
         
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
+=======
+>>>>>>> 4034d9478e224cb3a361324ddad49fb5e1962514
 
         self.setup_home_tab()
+        self.setup_right_panel_for_Home()
         self.setup_advanced_tab()
         self.setup_settings_tab()
+<<<<<<< HEAD
         self.setup_graphical_visualization_tab()
         self.setup_right_panel_for_Home()
+=======
+        self.lang_combo.currentTextChanged.connect(self.change_language)
+        self.tab_widget.currentChanged.connect(self.on_tab_changed)
+        self.current_language = 'en'  # Default language at start
+>>>>>>> 4034d9478e224cb3a361324ddad49fb5e1962514
 
     def setup_home_tab(self):
         layout = QVBoxLayout()
         self.home_tab.setLayout(layout)
 
-        title = QLabel("Water Meter Readings")
-        title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
-        layout.addWidget(title)
+        self.home_title = QLabel("Water Meter Readings")
+        self.home_title.setObjectName("home_title")
+        self.home_title.setAlignment(Qt.AlignCenter)
+        self.home_title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
+        layout.addWidget(self.home_title)
 
         self.home_table = self.create_table()
         layout.addWidget(self.home_table)
@@ -88,10 +151,11 @@ class WaterMeterGUI(QMainWindow):
         layout = QVBoxLayout()
         self.advanced_tab.setLayout(layout)
 
-        title = QLabel("Advanced Water Meter Readings")
-        title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
-        layout.addWidget(title)
+        self.advanced_title = QLabel("Advanced Water Meter Readings")
+        self.advanced_title.setObjectName("advanced_title")
+        self.advanced_title.setAlignment(Qt.AlignCenter)
+        self.advanced_title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
+        layout.addWidget(self.advanced_title)
 
         self.advanced_table = self.create_table()
         layout.addWidget(self.advanced_table)
@@ -100,11 +164,13 @@ class WaterMeterGUI(QMainWindow):
         layout = QVBoxLayout()
         self.settings_tab.setLayout(layout)
 
+        # Title
         title = QLabel("Settings")
         title.setAlignment(Qt.AlignCenter)
         title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
         layout.addWidget(title)
 
+<<<<<<< HEAD
     def setup_graphical_visualization_tab(self):
         if not hasattr(self, 'graphical_layout'):
             self.graphical_layout = QVBoxLayout()
@@ -156,6 +222,33 @@ class WaterMeterGUI(QMainWindow):
 
         return canvas
     
+=======
+        # -------------------
+        # 🔤 LANGUAGE SWITCHER
+        # -------------------
+        self.lang_combo = QComboBox()
+        self.lang_combo.addItems(["English", "Türkçe"])
+        self.lang_combo.currentTextChanged.connect(self.change_language)
+        
+        layout.addWidget(self.lang_combo)
+
+        # -------------------------
+        # 🔁 AUTO REFRESH TOGGLE
+        # -------------------------
+        self.auto_refresh_checkbox = QCheckBox("Enable Auto Refresh")
+        self.auto_refresh_checkbox.stateChanged.connect(self.read_all_meters)
+
+        self.refresh_interval_input = QSpinBox()
+        self.refresh_interval_input.setRange(1, 3600)  # seconds
+        self.refresh_interval_input.setValue(10)
+        self.refresh_interval_input.setSuffix(" sec")
+        self.refresh_interval_input.setEnabled(False)
+
+        layout.addWidget(self.auto_refresh_checkbox)
+        layout.addWidget(self.refresh_interval_input)
+
+
+>>>>>>> 4034d9478e224cb3a361324ddad49fb5e1962514
     def create_table(self) -> QTableWidget:
         table = QTableWidget()
         table.setColumnCount(4)
@@ -172,34 +265,39 @@ class WaterMeterGUI(QMainWindow):
     def setup_right_panel_for_Home(self):
         self.right_layout.addStretch()
         self.btn_load = QPushButton("Load All Readings")
+        self.btn_load.setObjectName("btn_load")
         self.btn_load.setStyleSheet(btnStyle)
         self.btn_load.clicked.connect(self.update_table)
         self.right_layout.addWidget(self.btn_load)
 
         self.btn_delete = QPushButton("Delete")
+        self.btn_delete.setObjectName("btn_delete")
         self.btn_delete.setStyleSheet(btnStyle)
         self.btn_delete.clicked.connect(self.delete_selected_rows)
         self.right_layout.addWidget(self.btn_delete)
 
     def setup_right_panel_for_advanced(self):
         self.right_layout.addStretch()
-
         self.btn_load = QPushButton("Load All Readings")
+        self.btn_load.setObjectName("btn_load")
         self.btn_load.setStyleSheet(btnStyle)
         self.btn_load.clicked.connect(self.update_table)
         self.right_layout.addWidget(self.btn_load)
 
         self.btn_read = QPushButton("Read New Meter")
+        self.btn_read.setObjectName("btn_read")
         self.btn_read.setStyleSheet(btnStyle)
         self.btn_read.clicked.connect(self.read_new_meter)
         self.right_layout.addWidget(self.btn_read)
 
         self.btn_read_all = QPushButton("Read All Meters")
+        self.btn_read_all.setObjectName("btn_read_all")
         self.btn_read_all.setStyleSheet(btnStyle)
         self.btn_read_all.clicked.connect(self.read_all_meters)
         self.right_layout.addWidget(self.btn_read_all)
 
         self.export_btn = QPushButton("Export to CSV")
+        self.export_btn.setObjectName("btn_export")
         self.export_btn.setStyleSheet(btnStyle)
         self.export_btn.clicked.connect(self.export_table_to_csv)
         self.right_layout.addWidget(self.export_btn)
@@ -210,15 +308,18 @@ class WaterMeterGUI(QMainWindow):
         self.right_layout.addWidget(self.usage_chart_btn)
 
         self.btn_delete = QPushButton("Delete")
+        self.btn_delete.setObjectName("btn_delete")
         self.btn_delete.setStyleSheet(btnStyle)
         self.btn_delete.clicked.connect(self.delete_selected_rows)
         self.right_layout.addWidget(self.btn_delete)
 
         self.sort_box = QComboBox()
         self.sort_box.addItems(["Meter ID", "Timestamp", "Value"])
+        self.sort_box.setObjectName("sort_box")
         self.right_layout.addWidget(self.sort_box)
 
         self.sort_button = QPushButton("Sort")
+        self.sort_button.setObjectName("sort_button")
         self.sort_button.clicked.connect(self.sort_table)
         self.right_layout.addWidget(self.sort_button)
 
@@ -238,22 +339,25 @@ class WaterMeterGUI(QMainWindow):
         date_layout.addWidget(self.date_to)
         self.right_layout.addLayout(date_layout)
 
-        self.checkbox = QCheckBox("Date Selected")
+        self.checkbox = QCheckBox("Date Selected \ Tarih")
         self.right_layout.addWidget(self.checkbox)
 
         self.filter_box = QComboBox()
         self.filter_box.addItems(["Meter ID", "Timestamp", "Value"])
+        self.filter_box.setObjectName("sort_box")
         self.right_layout.addWidget(self.filter_box)
 
         self.filter_input = QLineEdit()
-        self.filter_input.setPlaceholderText("Enter filter value...")
+        self.filter_input.setPlaceholderText("Enter filter value...") #to be changed
         self.right_layout.addWidget(self.filter_input)
 
         self.filter_button = QPushButton("Filter")
+        self.filter_button.setObjectName("filter_button")
         self.filter_button.setStyleSheet(btnStyle)
         self.filter_button.clicked.connect(self.apply_all_filters)
         self.right_layout.addWidget(self.filter_button)
 
+<<<<<<< HEAD
     def clear_layout(self, layout):
         if layout is not None:
             while layout.count():
@@ -263,24 +367,71 @@ class WaterMeterGUI(QMainWindow):
                     widget.setParent(None)
                 elif item.layout() is not None:
                     self.clear_layout(item.layout())
+=======
+ 
+    def clear_layout(self, layout):                        
+       while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.setParent(None)
+                widget.deleteLater()
+
+
+    def translate_ui(self, lang):
+        for widget in self.findChildren(QWidget):
+            obj_name = widget.objectName()
+            if obj_name in translations[lang]:
+                if isinstance(widget, QComboBox):
+                    widget.clear()
+                    widget.addItems(translations[lang][obj_name])
+                elif isinstance(widget, QAbstractButton):  # For QPushButton, QToolButton, etc.
+                    widget.setText(translations[lang][obj_name])
+                elif isinstance(widget, QLabel):
+                    widget.setText(translations[lang][obj_name])
+
+
+>>>>>>> 4034d9478e224cb3a361324ddad49fb5e1962514
 
     def on_tab_changed(self, index):
         tab_name = self.tab_widget.tabText(index)
         print(f"Switched to tab: {tab_name}")
         self.clear_layout(self.right_layout)
 
-        if tab_name == "Home":
+        if tab_name in ["Home", "Ana Sayfa"]:
             self.setup_right_panel_for_Home()
             self.update_table()
+<<<<<<< HEAD
         elif tab_name == "Advanced":
             self.setup_right_panel_for_advanced()
             self.update_table()
         elif tab_name == "Settings":
+=======
+
+        elif tab_name in ["Advanced", "Gelişmiş Detaylar"]:
+            self.setup_right_panel_for_advanced()
+            self.update_table()
+
+        elif tab_name in ["Settings", "Ayarlar"]:
+>>>>>>> 4034d9478e224cb3a361324ddad49fb5e1962514
             self.right_layout.addWidget(QLabel("Settings Panel Placeholder"))
         elif tab_name == "Graphical Visualization":
             self.setup_graphical_visualization_tab()
 
+<<<<<<< HEAD
         
+=======
+        # Translate the newly added widgets
+        self.translate_ui(self.current_language)
+
+
+    def change_language(self, selected_lang):
+        self.current_language = 'tr' if selected_lang == "Türkçe" else 'en'
+        self.translate_ui(self.current_language)
+
+
+
+>>>>>>> 4034d9478e224cb3a361324ddad49fb5e1962514
     def populate_table(self, readings: list[tuple], table: QTableWidget):
         table.setRowCount(0)
         for row_data in readings:
@@ -293,6 +444,22 @@ class WaterMeterGUI(QMainWindow):
             table.setItem(row, 1, QTableWidgetItem(str(row_data[1])))
             table.setItem(row, 2, QTableWidgetItem(str(row_data[2])))
             table.setItem(row, 3, QTableWidgetItem(str(row_data[3])))
+
+    # def toggle_auto_refresh(self, state):
+    #     if state == Qt.Checked:
+    #         interval = self.refresh_interval_input.value() * 1000  # ms
+    #         self.refresh_interval_input.setEnabled(True)
+
+    #         self.refresh_timer = QTimer()
+    #         self.refresh_timer.timeout.connect(self.update_table)
+    #         self.refresh_timer.start(interval)
+    #         print("Auto-refresh started every", interval / 1000, "seconds")
+    #     else:
+    #         self.refresh_interval_input.setEnabled(False)
+    #         if hasattr(self, 'refresh_timer'):
+    #             self.refresh_timer.stop()
+    #             print("Auto-refresh stopped")
+
 
     def update_table(self):
         readings = get_all_readings()
