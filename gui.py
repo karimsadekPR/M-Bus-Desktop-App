@@ -3,11 +3,17 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTableWidget, QLabel, QHeaderView, QPushButton, QComboBox,
     QTableWidgetItem, QMessageBox, QDateEdit, QCheckBox, QLineEdit,
-    QTabWidget, QFileDialog, QMessageBox, QSpinBox, QAbstractButton,
+    QTabWidget, QFileDialog, QSizePolicy
 )
-from PyQt5.QtCore import Qt, QDate, QTimer
-from database import get_all_readings, save_reading, save_meter, delete_meter
+from PyQt5.QtCore import Qt, QDate
+from database import get_all_readings, save_reading, save_meter, delete_meter, get_last_7_days
 from mbus_reader import read_meter
+from datetime import datetime
+
+# ⬇️ New matplotlib imports for embedding charts
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
 
 
 btnStyle = """
@@ -89,32 +95,28 @@ class WaterMeterGUI(QMainWindow):
         self.main_layout.addWidget(self.right_container)
 
         self.tab_widget = QTabWidget()
-
-        self.main_layout.addWidget(self.tab_widget)
-
         self.main_layout.addWidget(self.tab_widget)
         self.main_layout.addWidget(self.right_container)
-        
         self.right_container.setFixedWidth(300)
-
 
         self.home_tab = QWidget()
         self.advanced_tab = QWidget()
         self.settings_tab = QWidget()
+        self.graphical_visualization  = QWidget()
 
         self.tab_widget.addTab(self.home_tab, "Home")
         self.tab_widget.addTab(self.advanced_tab, "Advanced")
         self.tab_widget.addTab(self.settings_tab, "Settings")
+        self.tab_widget.addTab(self.graphical_visualization, "Graphical Visualization")
+        
+        self.tab_widget.currentChanged.connect(self.on_tab_changed)
 
         self.setup_home_tab()
         self.setup_right_panel_for_Home()
         self.setup_advanced_tab()
         self.setup_settings_tab()
-        self.lang_combo.currentTextChanged.connect(self.change_language)
-        self.tab_widget.currentChanged.connect(self.on_tab_changed)
-        self.current_language = 'en'  # Default language at start
-
-    # ---------- Setup Tabs ----------
+        self.setup_graphical_visualization_tab()
+        self.setup_right_panel_for_Home()
 
     def setup_home_tab(self):
         layout = QVBoxLayout()
@@ -152,56 +154,72 @@ class WaterMeterGUI(QMainWindow):
         title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
         layout.addWidget(title)
 
-        # -------------------
-        # 🔤 LANGUAGE SWITCHER
-        # -------------------
-        self.lang_combo = QComboBox()
-        self.lang_combo.addItems(["English", "Türkçe"])
-        self.lang_combo.currentTextChanged.connect(self.change_language)
-        
-        layout.addWidget(self.lang_combo)
+    def setup_graphical_visualization_tab(self):
+        if not hasattr(self, 'graphical_layout'):
+            self.graphical_layout = QVBoxLayout()
+            self.graphical_visualization.setLayout(self.graphical_layout)
 
-        # -------------------------
-        # 🔁 AUTO REFRESH TOGGLE
-        # -------------------------
-        self.auto_refresh_checkbox = QCheckBox("Enable Auto Refresh")
-        self.auto_refresh_checkbox.stateChanged.connect(self.read_all_meters)
+            title = QLabel("Graphical Visualization")
+            title.setAlignment(Qt.AlignCenter)
+            title.setStyleSheet("font-size: 20px; font-weight: bold; padding: 10px;")
+            self.graphical_layout.addWidget(title)
 
-        self.refresh_interval_input = QSpinBox()
-        self.refresh_interval_input.setRange(1, 3600)  # seconds
-        self.refresh_interval_input.setValue(10)
-        self.refresh_interval_input.setSuffix(" sec")
-        self.refresh_interval_input.setEnabled(False)
+        if hasattr(self, 'graphical_chart') and self.graphical_chart:
+            self.graphical_layout.removeWidget(self.graphical_chart)
+            self.graphical_chart.setParent(None)
 
-        layout.addWidget(self.auto_refresh_checkbox)
-        layout.addWidget(self.refresh_interval_input)
+        self.graphical_chart = self.create_graphical_chart()
+        self.graphical_layout.addWidget(self.graphical_chart)
 
 
+    def create_graphical_chart(self):
+        last_7_days = get_last_7_days()
+        print(last_7_days)
+
+        days = [row[0] for row in last_7_days]
+        usage = [row[1] for row in last_7_days]
+
+        #print(last_7_days, days, usage)
+
+        fig = Figure(figsize=(12, 6))
+        ax = fig.add_subplot(111)
+
+        ax.plot(days, usage, marker='o', linestyle='-', color='blue', label='Usage (m³)')
+
+        # Add value labels on the points
+        for i, value in enumerate(usage):
+            ax.text(days[i], value, f"{value:.2f}", fontsize=9, ha='center', va='bottom')
+
+        ax.set_title("Water Usage Over Last 7 Days")
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Total Usage (m³)")
+
+        ax.set_yscale('log')  
+
+        ax.grid(True, linestyle='--', alpha=0.6)
+        ax.legend()
+
+        canvas = FigureCanvas(fig)
+        canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        canvas.updateGeometry()
+
+        return canvas
+    
     def create_table(self) -> QTableWidget:
         table = QTableWidget()
         table.setColumnCount(4)
-        table.setHorizontalHeaderLabels([ "Select" ,"Meter ID", "Timestamp", "Usage (m³)"])
+        table.setHorizontalHeaderLabels(["Select", "Meter ID", "Timestamp", "Usage (m³)"])
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-
         header = table.horizontalHeader()
-         # Column 0: Checkbox — auto-size
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-
-        # Column 1: Meter ID — fixed width
         header.setSectionResizeMode(1, QHeaderView.Fixed)
         table.setColumnWidth(1, 100)
-
-        # Column 2: Timestamp — stretch
         header.setSectionResizeMode(2, QHeaderView.Stretch)
-
-        # Column 3: Usage — stretch
         header.setSectionResizeMode(3, QHeaderView.Stretch)
-        
         return table
-    
+
     def setup_right_panel_for_Home(self):
         self.right_layout.addStretch()
-
         self.btn_load = QPushButton("Load All Readings")
         self.btn_load.setObjectName("btn_load")
         self.btn_load.setStyleSheet(btnStyle)
@@ -213,8 +231,6 @@ class WaterMeterGUI(QMainWindow):
         self.btn_delete.setStyleSheet(btnStyle)
         self.btn_delete.clicked.connect(self.delete_selected_rows)
         self.right_layout.addWidget(self.btn_delete)
-
-
 
     def setup_right_panel_for_advanced(self):
         self.right_layout.addStretch()
@@ -297,29 +313,15 @@ class WaterMeterGUI(QMainWindow):
         self.filter_button.clicked.connect(self.apply_all_filters)
         self.right_layout.addWidget(self.filter_button)
 
- 
-    def clear_layout(self, layout):                        
-       while layout.count():
-            item = layout.takeAt(0)
-            widget = item.widget()
-            if widget:
-                widget.setParent(None)
-                widget.deleteLater()
-
-
-    def translate_ui(self, lang):
-        for widget in self.findChildren(QWidget):
-            obj_name = widget.objectName()
-            if obj_name in translations[lang]:
-                if isinstance(widget, QComboBox):
-                    widget.clear()
-                    widget.addItems(translations[lang][obj_name])
-                elif isinstance(widget, QAbstractButton):  # For QPushButton, QToolButton, etc.
-                    widget.setText(translations[lang][obj_name])
-                elif isinstance(widget, QLabel):
-                    widget.setText(translations[lang][obj_name])
-
-
+    def clear_layout(self, layout):
+        if layout is not None:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.setParent(None)
+                elif item.layout() is not None:
+                    self.clear_layout(item.layout())
 
     def on_tab_changed(self, index):
         tab_name = self.tab_widget.tabText(index)
@@ -329,40 +331,24 @@ class WaterMeterGUI(QMainWindow):
         if tab_name in ["Home", "Ana Sayfa"]:
             self.setup_right_panel_for_Home()
             self.update_table()
-
-        elif tab_name in ["Advanced", "Gelişmiş Detaylar"]:
+        elif tab_name == "Advanced":
             self.setup_right_panel_for_advanced()
             self.update_table()
-
-        elif tab_name in ["Settings", "Ayarlar"]:
+        elif tab_name == "Settings":
             self.right_layout.addWidget(QLabel("Settings Panel Placeholder"))
+        elif tab_name == "Graphical Visualization":
+            self.setup_graphical_visualization_tab()
 
-        # Translate the newly added widgets
-        self.translate_ui(self.current_language)
-
-
-    def change_language(self, selected_lang):
-        self.current_language = 'tr' if selected_lang == "Türkçe" else 'en'
-        self.translate_ui(self.current_language)
-
-
-
+        
     def populate_table(self, readings: list[tuple], table: QTableWidget):
         table.setRowCount(0)
-        table.setColumnWidth(1, 100)
-        table.setColumnWidth(2, 150)
-        table.setColumnWidth(3, 100)
-        
         for row_data in readings:
             row = table.rowCount()
             table.insertRow(row)
-
-            # Checkbox in first column
             checkbox_item = QTableWidgetItem()
             checkbox_item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
             checkbox_item.setCheckState(Qt.Unchecked)
             table.setItem(row, 0, checkbox_item)
-
             table.setItem(row, 1, QTableWidgetItem(str(row_data[1])))
             table.setItem(row, 2, QTableWidgetItem(str(row_data[2])))
             table.setItem(row, 3, QTableWidgetItem(str(row_data[3])))
@@ -395,19 +381,15 @@ class WaterMeterGUI(QMainWindow):
         readings = get_all_readings()
         readings = self.filter_by_date(readings)
         readings = self.filter_by_input(readings)
-
         current_tab = self.tab_widget.currentWidget()
         if current_tab == self.home_tab:
             self.populate_table(readings, self.home_table)
         elif current_tab == self.advanced_tab:
             self.populate_table(readings, self.advanced_table)
 
-        print(f"Filtered {len(readings)} result(s).")
-
     def sort_table(self):
         sort_by = self.sort_box.currentText()
         column_index = {"Meter ID": 0, "Timestamp": 1, "Value": 2}.get(sort_by, 0)
-
         current_tab = self.tab_widget.currentWidget()
         if current_tab == self.home_tab:
             self.home_table.sortItems(column_index, Qt.AscendingOrder)
@@ -459,9 +441,6 @@ class WaterMeterGUI(QMainWindow):
                 return []
         return readings
 
-    def checkbox_clicked(self): 
-        print(self.checkbox_clicked)
-
     def delete_selected_rows(self):
         current_tab = self.tab_widget.currentWidget()
         table = None
@@ -475,7 +454,6 @@ class WaterMeterGUI(QMainWindow):
             return
 
         rows_to_delete = []
-
         for row in range(table.rowCount()):
             item = table.item(row, 0)
             if item and item.checkState() == Qt.Checked:
@@ -488,7 +466,7 @@ class WaterMeterGUI(QMainWindow):
         confirm = QMessageBox.question(
             self,
             "Confirm Deletion",
-            f"Are you sure you want to delete {len(rows_to_delete)} selected meter(s)? This will also remove readings from the database.",
+            f"Are you sure you want to delete {len(rows_to_delete)} selected meter(s)?",
             QMessageBox.Yes | QMessageBox.No
         )
 
@@ -503,13 +481,11 @@ class WaterMeterGUI(QMainWindow):
                         meter_value = float(meter_value_item.text())
                         meter_time = meter_time_item.text()
                         delete_meter(meter_id, meter_value, meter_time)
-                        print(f"Deleted meter ID: {meter_id}")
                     except Exception as e:
                         print(f"Error deleting meter: {e}")
                 table.removeRow(row)
 
-            QMessageBox.information(self, "Deleted", "Selected meters deleted from table and database.")
-
+            QMessageBox.information(self, "Deleted", "Selected meters deleted.")
 
     def export_table_to_csv(self):
         current_tab = self.tab_widget.currentWidget()
@@ -523,41 +499,30 @@ class WaterMeterGUI(QMainWindow):
 
         options = QFileDialog.Options()
         file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save CSV",
-            "",
-            "CSV Files (*.csv);;All Files (*)",
-            options=options
+            self, "Save CSV", "", "CSV Files (*.csv);;All Files (*)", options=options
         )
-        
+
         if file_path:
             try:
                 with open(file_path, mode='w', newline='', encoding='utf-8') as file:
                     writer = csv.writer(file)
-
-                    # Write header row (optional)
-                    headers = [table.horizontalHeaderItem(col).text()
-                            for col in range(table.columnCount())]
+                    headers = [table.horizontalHeaderItem(col).text() for col in range(table.columnCount())]
                     writer.writerow(headers)
-
-                    # Write data rows
                     for row in range(table.rowCount()):
                         row_data = []
                         for col in range(table.columnCount()):
                             item = table.item(row, col)
                             row_data.append(item.text() if item else "")
                         writer.writerow(row_data)
-
                 QMessageBox.information(self, "Export Successful", "Table data exported successfully!")
-            
             except Exception as e:
                 QMessageBox.critical(self, "Export Failed", f"An error occurred:\n{str(e)}")
 
     def show_usage_chart(self):
-        QMessageBox.information(self, "Info", "Usage chart feature is not yet implemented.")
+        QMessageBox.information(self, "Info", "Usage chart feature is now in the Graphical Visualization tab.")
+
 
 # ---------- Run App ----------
-
 def launch_gui():
     app = QApplication(sys.argv)
     window = WaterMeterGUI()

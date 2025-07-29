@@ -1,4 +1,5 @@
 import sqlite3
+import datetime
 
 def init_db():
     conn = sqlite3.connect('meter_data.db')
@@ -16,6 +17,28 @@ def init_db():
             meterId INTEGER
         )
     ''')
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS telegrams (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        raw_hex TEXT,
+        meter_id INTEGER,
+        length INTEGER,
+        ci_field TEXT
+        )
+    ''')
+    conn.close()
+
+
+def set_row_telegram(raw_hex, meter_id, length, ci_field):
+    conn = sqlite3.connect('meter_data.db')
+    c = conn.cursor()
+    c.execute("select * from telegrams where meter_id = ?", (meter_id,))
+    existing = c.fetchone()
+    if existing is None:
+        c.execute("INSERT INTO telegrams (raw_hex, meter_id, length, ci_field) VALUES (?, ?, ?, ?)",
+                (raw_hex,meter_id,length,ci_field))
+        conn.commit()
     conn.close()
 
 def save_reading(meterId, timestamp, value):
@@ -77,5 +100,27 @@ def delete_meter(meter_id, meter_value, meter_time):
     conn.close()
 
 
+def get_last_7_days():
+    today = datetime.date.today()
+    seven_days_ago = today - datetime.timedelta(days=7)
+    tomorrow = today + datetime.timedelta(days=1)  
+
+    with sqlite3.connect('meter_data.db') as conn:
+        cur = conn.cursor()
+        cur.execute('''
+            SELECT DATE(timestamp) as day, SUM(water_usage) as total_usage
+            FROM readings
+            WHERE timestamp >= ? AND timestamp < ?
+            GROUP BY DATE(timestamp)
+            ORDER BY day ASC
+        ''', (seven_days_ago.isoformat(), tomorrow.isoformat()))
+
+        rows = cur.fetchall()
+    return rows
+
+def Add_new_reading():
+    conn = sqlite3.connect('meter_data.db')
+    cur = conn.cursor()
+    
 
 
