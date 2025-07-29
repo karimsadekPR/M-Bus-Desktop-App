@@ -3,17 +3,10 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTableWidget, QLabel, QHeaderView, QPushButton, QComboBox,
     QTableWidgetItem, QMessageBox, QDateEdit, QCheckBox, QLineEdit,
-<<<<<<< HEAD
     QTabWidget, QFileDialog, QSizePolicy
 )
 from PyQt5.QtCore import Qt, QDate
 from database import get_all_readings, save_reading, save_meter, delete_meter, get_last_7_days
-=======
-    QTabWidget, QFileDialog, QMessageBox, QSpinBox, QAbstractButton,
-)
-from PyQt5.QtCore import Qt, QDate, QTimer
-from database import get_all_readings, save_reading, save_meter, delete_meter
->>>>>>> 4034d9478e224cb3a361324ddad49fb5e1962514
 from mbus_reader import read_meter
 from datetime import datetime
 
@@ -114,25 +107,16 @@ class WaterMeterGUI(QMainWindow):
         self.tab_widget.addTab(self.home_tab, "Home")
         self.tab_widget.addTab(self.advanced_tab, "Advanced")
         self.tab_widget.addTab(self.settings_tab, "Settings")
-<<<<<<< HEAD
         self.tab_widget.addTab(self.graphical_visualization, "Graphical Visualization")
         
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
-=======
->>>>>>> 4034d9478e224cb3a361324ddad49fb5e1962514
 
         self.setup_home_tab()
         self.setup_right_panel_for_Home()
         self.setup_advanced_tab()
         self.setup_settings_tab()
-<<<<<<< HEAD
         self.setup_graphical_visualization_tab()
         self.setup_right_panel_for_Home()
-=======
-        self.lang_combo.currentTextChanged.connect(self.change_language)
-        self.tab_widget.currentChanged.connect(self.on_tab_changed)
-        self.current_language = 'en'  # Default language at start
->>>>>>> 4034d9478e224cb3a361324ddad49fb5e1962514
 
     def setup_home_tab(self):
         layout = QVBoxLayout()
@@ -170,7 +154,6 @@ class WaterMeterGUI(QMainWindow):
         title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
         layout.addWidget(title)
 
-<<<<<<< HEAD
     def setup_graphical_visualization_tab(self):
         if not hasattr(self, 'graphical_layout'):
             self.graphical_layout = QVBoxLayout()
@@ -222,33 +205,6 @@ class WaterMeterGUI(QMainWindow):
 
         return canvas
     
-=======
-        # -------------------
-        # 🔤 LANGUAGE SWITCHER
-        # -------------------
-        self.lang_combo = QComboBox()
-        self.lang_combo.addItems(["English", "Türkçe"])
-        self.lang_combo.currentTextChanged.connect(self.change_language)
-        
-        layout.addWidget(self.lang_combo)
-
-        # -------------------------
-        # 🔁 AUTO REFRESH TOGGLE
-        # -------------------------
-        self.auto_refresh_checkbox = QCheckBox("Enable Auto Refresh")
-        self.auto_refresh_checkbox.stateChanged.connect(self.read_all_meters)
-
-        self.refresh_interval_input = QSpinBox()
-        self.refresh_interval_input.setRange(1, 3600)  # seconds
-        self.refresh_interval_input.setValue(10)
-        self.refresh_interval_input.setSuffix(" sec")
-        self.refresh_interval_input.setEnabled(False)
-
-        layout.addWidget(self.auto_refresh_checkbox)
-        layout.addWidget(self.refresh_interval_input)
-
-
->>>>>>> 4034d9478e224cb3a361324ddad49fb5e1962514
     def create_table(self) -> QTableWidget:
         table = QTableWidget()
         table.setColumnCount(4)
@@ -357,7 +313,6 @@ class WaterMeterGUI(QMainWindow):
         self.filter_button.clicked.connect(self.apply_all_filters)
         self.right_layout.addWidget(self.filter_button)
 
-<<<<<<< HEAD
     def clear_layout(self, layout):
         if layout is not None:
             while layout.count():
@@ -367,31 +322,6 @@ class WaterMeterGUI(QMainWindow):
                     widget.setParent(None)
                 elif item.layout() is not None:
                     self.clear_layout(item.layout())
-=======
- 
-    def clear_layout(self, layout):                        
-       while layout.count():
-            item = layout.takeAt(0)
-            widget = item.widget()
-            if widget:
-                widget.setParent(None)
-                widget.deleteLater()
-
-
-    def translate_ui(self, lang):
-        for widget in self.findChildren(QWidget):
-            obj_name = widget.objectName()
-            if obj_name in translations[lang]:
-                if isinstance(widget, QComboBox):
-                    widget.clear()
-                    widget.addItems(translations[lang][obj_name])
-                elif isinstance(widget, QAbstractButton):  # For QPushButton, QToolButton, etc.
-                    widget.setText(translations[lang][obj_name])
-                elif isinstance(widget, QLabel):
-                    widget.setText(translations[lang][obj_name])
-
-
->>>>>>> 4034d9478e224cb3a361324ddad49fb5e1962514
 
     def on_tab_changed(self, index):
         tab_name = self.tab_widget.tabText(index)
@@ -401,37 +331,15 @@ class WaterMeterGUI(QMainWindow):
         if tab_name in ["Home", "Ana Sayfa"]:
             self.setup_right_panel_for_Home()
             self.update_table()
-<<<<<<< HEAD
         elif tab_name == "Advanced":
             self.setup_right_panel_for_advanced()
             self.update_table()
         elif tab_name == "Settings":
-=======
-
-        elif tab_name in ["Advanced", "Gelişmiş Detaylar"]:
-            self.setup_right_panel_for_advanced()
-            self.update_table()
-
-        elif tab_name in ["Settings", "Ayarlar"]:
->>>>>>> 4034d9478e224cb3a361324ddad49fb5e1962514
             self.right_layout.addWidget(QLabel("Settings Panel Placeholder"))
         elif tab_name == "Graphical Visualization":
             self.setup_graphical_visualization_tab()
 
-<<<<<<< HEAD
         
-=======
-        # Translate the newly added widgets
-        self.translate_ui(self.current_language)
-
-
-    def change_language(self, selected_lang):
-        self.current_language = 'tr' if selected_lang == "Türkçe" else 'en'
-        self.translate_ui(self.current_language)
-
-
-
->>>>>>> 4034d9478e224cb3a361324ddad49fb5e1962514
     def populate_table(self, readings: list[tuple], table: QTableWidget):
         table.setRowCount(0)
         for row_data in readings:
