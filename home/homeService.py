@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import (
     QTabWidget, QFileDialog, QSizePolicy, QAbstractButton
 )
 
-
 from PyQt5.QtCore import Qt
 from style.btnStyle import btnStyle
 from database import delete_meter

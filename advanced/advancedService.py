@@ -6,8 +6,8 @@ from PyQt5.QtWidgets import (
     QTabWidget, QFileDialog, QSizePolicy, QAbstractButton
 )
 from PyQt5.QtCore import Qt, QDate
-
 from style.btnStyle import btnStyle
+from tools.exportCSV import export_table_to_csv
 
 def setup_advanced_tab(self):
         layout = QVBoxLayout()
@@ -60,7 +60,7 @@ def setup_right_panel_for_Advanced(self):
         self.export_btn = QPushButton("Export to CSV")
         self.export_btn.setObjectName("btn_export")
         self.export_btn.setStyleSheet(btnStyle)
-        self.export_btn.clicked.connect(self.export_table_to_csv)
+        self.export_btn.clicked.connect(lambda: export_table_to_csv(self))
         self.right_layout.addWidget(self.export_btn)
 
         self.usage_chart_btn = QPushButton("Show Usage Chart")
