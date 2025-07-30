@@ -16,7 +16,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 from settings.settingsService import setup_settings_tab, translations
-from home.homeService import setup_home_tab
+from home.homeService import setup_home_tab, setup_right_panel_for_Home
+from advanced.advancedService import setup_advanced_tab, setup_right_panel_for_Advanced
 
 
 btnStyle = """
@@ -66,42 +67,13 @@ class WaterMeterGUI(QMainWindow):
         self.tab_widget.addTab(self.advanced_tab, "Advanced")
         self.tab_widget.addTab(self.graphical_visualization, "Graphical Visualization")
         
-        
-
         setup_home_tab(self)
-        self.setup_right_panel_for_Home()
-        self.setup_advanced_tab()
+        setup_right_panel_for_Home(self)
+        setup_advanced_tab(self)
         setup_settings_tab(self)
         self.setup_graphical_visualization_tab()
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
 
-
-    # def setup_home_tab(self):
-    #     layout = QVBoxLayout()
-    #     self.home_tab.setLayout(layout)
-
-    #     self.home_title = QLabel("Water Meter Readings")
-    #     self.home_title.setObjectName("home_title")
-    #     self.home_title.setAlignment(Qt.AlignCenter)
-    #     self.home_title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
-    #     layout.addWidget(self.home_title)
-
-    #     self.home_table = self.create_table()
-    #     layout.addWidget(self.home_table)
-
-    def setup_advanced_tab(self):
-        layout = QVBoxLayout()
-        self.advanced_tab.setLayout(layout)
-
-        self.advanced_title = QLabel("Advanced Water Meter Readings")
-        self.advanced_title.setObjectName("advanced_title")
-        self.advanced_title.setAlignment(Qt.AlignCenter)
-        self.advanced_title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
-        layout.addWidget(self.advanced_title)
-
-        self.advanced_table = self.create_table()
-        layout.addWidget(self.advanced_table)
-        
     def setup_graphical_visualization_tab(self):
         if not hasattr(self, 'graphical_layout'):
             self.graphical_layout = QVBoxLayout()
@@ -166,101 +138,6 @@ class WaterMeterGUI(QMainWindow):
         header.setSectionResizeMode(3, QHeaderView.Stretch)
         return table
 
-    def setup_right_panel_for_Home(self):
-        self.right_layout.addStretch()
-        self.btn_load = QPushButton("Load All Readings")
-        self.btn_load.setObjectName("btn_load")
-        self.btn_load.setStyleSheet(btnStyle)
-        self.btn_load.clicked.connect(self.update_table)
-        self.right_layout.addWidget(self.btn_load)
-
-        self.btn_delete = QPushButton("Delete")
-        self.btn_delete.setObjectName("btn_delete")
-        self.btn_delete.setStyleSheet(btnStyle)
-        self.btn_delete.clicked.connect(self.delete_selected_rows)
-        self.right_layout.addWidget(self.btn_delete)
-
-    def setup_right_panel_for_advanced(self):
-        self.right_layout.addStretch()
-        self.btn_load = QPushButton("Load All Readings")
-        self.btn_load.setObjectName("btn_load")
-        self.btn_load.setStyleSheet(btnStyle)
-        self.btn_load.clicked.connect(self.update_table)
-        self.right_layout.addWidget(self.btn_load)
-
-        self.btn_read = QPushButton("Read New Meter")
-        self.btn_read.setObjectName("btn_read")
-        self.btn_read.setStyleSheet(btnStyle)
-        self.btn_read.clicked.connect(self.read_new_meter)
-        self.right_layout.addWidget(self.btn_read)
-
-        self.btn_read_all = QPushButton("Read All Meters")
-        self.btn_read_all.setObjectName("btn_read_all")
-        self.btn_read_all.setStyleSheet(btnStyle)
-        self.btn_read_all.clicked.connect(self.read_all_meters)
-        self.right_layout.addWidget(self.btn_read_all)
-
-        self.export_btn = QPushButton("Export to CSV")
-        self.export_btn.setObjectName("btn_export")
-        self.export_btn.setStyleSheet(btnStyle)
-        self.export_btn.clicked.connect(self.export_table_to_csv)
-        self.right_layout.addWidget(self.export_btn)
-
-        self.usage_chart_btn = QPushButton("Show Usage Chart")
-        self.usage_chart_btn.setStyleSheet(btnStyle)
-        self.usage_chart_btn.clicked.connect(self.show_usage_chart)
-        self.right_layout.addWidget(self.usage_chart_btn)
-
-        self.btn_delete = QPushButton("Delete")
-        self.btn_delete.setObjectName("btn_delete")
-        self.btn_delete.setStyleSheet(btnStyle)
-        self.btn_delete.clicked.connect(self.delete_selected_rows)
-        self.right_layout.addWidget(self.btn_delete)
-
-        self.sort_box = QComboBox()
-        self.sort_box.addItems(["Meter ID", "Timestamp", "Value"])
-        self.sort_box.setObjectName("sort_box")
-        self.right_layout.addWidget(self.sort_box)
-
-        self.sort_button = QPushButton("Sort")
-        self.sort_button.setObjectName("sort_button")
-        self.sort_button.clicked.connect(self.sort_table)
-        self.right_layout.addWidget(self.sort_button)
-
-        self.right_layout.addSpacing(10)
-        self.right_layout.addWidget(QLabel("Date From:"))
-
-        date_layout = QHBoxLayout()
-        self.date_from = QDateEdit(QDate.currentDate())
-        self.date_from.setCalendarPopup(True)
-        self.date_from.setDisplayFormat("yyyy-MM-dd")
-
-        self.date_to = QDateEdit(QDate.currentDate())
-        self.date_to.setCalendarPopup(True)
-        self.date_to.setDisplayFormat("yyyy-MM-dd")
-
-        date_layout.addWidget(self.date_from)
-        date_layout.addWidget(self.date_to)
-        self.right_layout.addLayout(date_layout)
-
-        self.checkbox = QCheckBox("Date Selected \ Tarih")
-        self.right_layout.addWidget(self.checkbox)
-
-        self.filter_box = QComboBox()
-        self.filter_box.addItems(["Meter ID", "Timestamp", "Value"])
-        self.filter_box.setObjectName("sort_box")
-        self.right_layout.addWidget(self.filter_box)
-
-        self.filter_input = QLineEdit()
-        self.filter_input.setPlaceholderText("Enter filter value...") #to be changed
-        self.right_layout.addWidget(self.filter_input)
-
-        self.filter_button = QPushButton("Filter")
-        self.filter_button.setObjectName("filter_button")
-        self.filter_button.setStyleSheet(btnStyle)
-        self.filter_button.clicked.connect(self.apply_all_filters)
-        self.right_layout.addWidget(self.filter_button)
-
     def clear_layout(self, layout):
         if layout is not None:
             while layout.count():
@@ -297,19 +174,17 @@ class WaterMeterGUI(QMainWindow):
         self.translate_ui(self.current_language)
         self.lang_combo.blockSignals(False)
 
-
-    
     def on_tab_changed(self, index):
         tab_name = self.tab_widget.tabText(index)
         print(f"Switched to tab: {tab_name}")
         self.clear_layout(self.right_layout)
 
         if tab_name in ["Home", "Ana Sayfa"]:
-            self.setup_right_panel_for_Home()
+            setup_right_panel_for_Home(self)
             self.update_table()
 
         elif tab_name in ["Advanced", "Gelişmiş Detaylar"]:
-            self.setup_right_panel_for_advanced()
+            setup_right_panel_for_Advanced(self)
             self.update_table()
 
         elif tab_name in ["Settings", "Ayarlar"]:

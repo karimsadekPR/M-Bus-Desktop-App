@@ -59,8 +59,6 @@ translations = {
     }
 }
 
-
-
 def setup_settings_tab(self):
         settings_tab = QWidget()
         layout = QVBoxLayout()
