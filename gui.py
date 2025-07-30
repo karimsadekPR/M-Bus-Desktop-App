@@ -196,37 +196,37 @@ class WaterMeterGUI(QMainWindow):
 
 
     def create_graphical_chart(self):
-        last_7_days = get_last_7_days()
-        print(last_7_days)
+            last_7_days = get_last_7_days()
+            print(last_7_days)
 
-        days = [row[0] for row in last_7_days]
-        usage = [row[1] for row in last_7_days]
+            days = [row[0] for row in last_7_days]
+            usage = [row[1] for row in last_7_days]
 
-        #print(last_7_days, days, usage)
+            #print(last_7_days, days, usage)
 
-        fig = Figure(figsize=(12, 6))
-        ax = fig.add_subplot(111)
+            fig = Figure(figsize=(12, 6))
+            ax = fig.add_subplot(111)
 
-        ax.plot(days, usage, marker='o', linestyle='-', color='blue', label='Usage (m³)')
+            ax.plot(days, usage, marker='o', linestyle='-', color='blue', label='Usage (m³)')
 
-        # Add value labels on the points
-        for i, value in enumerate(usage):
-            ax.text(days[i], value, f"{value:.2f}", fontsize=9, ha='center', va='bottom')
+            # Add value labels on the points
+            for i, value in enumerate(usage):
+                ax.text(days[i], value, f"{value:.2f}", fontsize=9, ha='center', va='bottom')
 
-        ax.set_title("Water Usage Over Last 7 Days")
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Total Usage (m³)")
+            ax.set_title("Water Usage Over Last 7 Days")
+            ax.set_xlabel("Date")
+            ax.set_ylabel("Total Usage (m³)")
 
-        ax.set_yscale('log')  
+            ax.set_yscale('log')  
 
-        ax.grid(True, linestyle='--', alpha=0.6)
-        ax.legend()
+            ax.grid(True, linestyle='--', alpha=0.6)
+            ax.legend()
 
-        canvas = FigureCanvas(fig)
-        canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        canvas.updateGeometry()
+            canvas = FigureCanvas(fig)
+            canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            canvas.updateGeometry()
 
-        return canvas
+            return canvas
     
     def create_table(self) -> QTableWidget:
         table = QTableWidget()
@@ -363,9 +363,7 @@ class WaterMeterGUI(QMainWindow):
 
 
     def change_language(self, selected_lang):
-    # prevent recursion loop
         self.lang_combo.blockSignals(True)
-
         if selected_lang.lower().startswith("t"):
             self.current_language = "tr"
         else:
@@ -391,10 +389,9 @@ class WaterMeterGUI(QMainWindow):
 
         elif tab_name in ["Settings", "Ayarlar"]:
             self.right_layout.addWidget(QLabel("Settings Panel Placeholder"))
-
-        # Translate the newly added widgets
-        self.translate_ui(self.current_language)
-
+            self.translate_ui(self.current_language)
+        elif tab_name in ["Graphical Visualization"]:
+            self.setup_graphical_visualization_tab()
         
     def populate_table(self, readings: list[tuple], table: QTableWidget):
         table.setRowCount(0)
