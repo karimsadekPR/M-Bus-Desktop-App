@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTableWidget, QLabel, QHeaderView, QPushButton, QComboBox,
     QTableWidgetItem, QMessageBox, QDateEdit, QCheckBox, QLineEdit,
-    QTabWidget, QFileDialog, QSizePolicy
+    QTabWidget, QFileDialog, QSizePolicy, QAbstractButton
 )
 from PyQt5.QtCore import Qt, QDate
 from database import get_all_readings, save_reading, save_meter, delete_meter, get_last_7_days
@@ -33,6 +33,10 @@ QPushButton:hover {
 
 translations = {
     'en': {
+        "btn_ok": "OK",
+        "btn_cancel": "Cancel",
+        'lang_label': 'Language:',
+        'lang_combo': ['English', 'Türkçe'],
         'btn_load': "Load All Readings",
         'btn_read': "Read New Meter",
         'btn_read_all': "Read All Meters",
@@ -54,6 +58,10 @@ translations = {
         # Add more as needed
     },
     'tr': {
+        "btn_ok": "OK",
+        "btn_cancel": "Cancel",
+        'lang_label': 'Dil:',
+        'lang_combo': ['İngilizce', 'Türkçe'],
         'btn_load': "Tüm Verileri Yükle",
         'btn_read': "Yeni Sayaç Oku",
         'btn_read_all': "Tüm Sayaçları Oku",
@@ -79,7 +87,7 @@ translations = {
 class WaterMeterGUI(QMainWindow):
     def __init__(self):
         super().__init__()
-
+        self.current_language = 'en'
         self.setWindowTitle("Water Meter GUI")
         self.resize(1500, 700)
 
@@ -106,10 +114,9 @@ class WaterMeterGUI(QMainWindow):
 
         self.tab_widget.addTab(self.home_tab, "Home")
         self.tab_widget.addTab(self.advanced_tab, "Advanced")
-        self.tab_widget.addTab(self.settings_tab, "Settings")
         self.tab_widget.addTab(self.graphical_visualization, "Graphical Visualization")
         
-        self.tab_widget.currentChanged.connect(self.on_tab_changed)
+        
 
         self.setup_home_tab()
         self.setup_right_panel_for_Home()
@@ -117,6 +124,9 @@ class WaterMeterGUI(QMainWindow):
         self.setup_settings_tab()
         self.setup_graphical_visualization_tab()
         self.setup_right_panel_for_Home()
+        self.lang_combo.currentTextChanged.connect(self.change_language)
+        self.tab_widget.currentChanged.connect(self.on_tab_changed)
+
 
     def setup_home_tab(self):
         layout = QVBoxLayout()
@@ -145,14 +155,27 @@ class WaterMeterGUI(QMainWindow):
         layout.addWidget(self.advanced_table)
         
     def setup_settings_tab(self):
+        settings_tab = QWidget()
         layout = QVBoxLayout()
-        self.settings_tab.setLayout(layout)
 
-        # Title
-        title = QLabel("Settings")
-        title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
-        layout.addWidget(title)
+        # Language label
+        self.lang_label = QLabel("Language:")
+        self.lang_label.setObjectName("lang_label")
+        layout.addWidget(self.lang_label)
+
+        # Language combo box
+        self.lang_combo = QComboBox()
+        self.lang_combo.setObjectName("lang_combo")
+        self.lang_combo.addItems(translations["en"]["lang_combo"])
+        self.lang_combo.setCurrentIndex(0)
+        layout.addWidget(self.lang_combo)
+
+        # Connect language change signal
+        self.lang_combo.currentTextChanged.connect(self.change_language)
+
+        # Set layout to the tab
+        settings_tab.setLayout(layout)
+        self.tab_widget.addTab(settings_tab, "Settings")
 
     def setup_graphical_visualization_tab(self):
         if not hasattr(self, 'graphical_layout'):
@@ -323,6 +346,36 @@ class WaterMeterGUI(QMainWindow):
                 elif item.layout() is not None:
                     self.clear_layout(item.layout())
 
+    def translate_ui(self, lang):
+        for widget in self.findChildren(QWidget):
+            obj_name = widget.objectName()
+            if obj_name in translations[lang]:
+                if isinstance(widget, QComboBox):
+                    current_text = widget.currentText()
+                    widget.clear()
+                    widget.addItems(translations[lang][obj_name])
+                    if current_text in translations[lang][obj_name]:
+                        widget.setCurrentText(current_text)
+                elif isinstance(widget, QAbstractButton):
+                    widget.setText(translations[lang][obj_name])
+                elif isinstance(widget, QLabel):
+                    widget.setText(translations[lang][obj_name])
+
+
+    def change_language(self, selected_lang):
+    # prevent recursion loop
+        self.lang_combo.blockSignals(True)
+
+        if selected_lang.lower().startswith("t"):
+            self.current_language = "tr"
+        else:
+            self.current_language = "en"
+
+        self.translate_ui(self.current_language)
+        self.lang_combo.blockSignals(False)
+
+
+    
     def on_tab_changed(self, index):
         tab_name = self.tab_widget.tabText(index)
         print(f"Switched to tab: {tab_name}")
@@ -331,13 +384,16 @@ class WaterMeterGUI(QMainWindow):
         if tab_name in ["Home", "Ana Sayfa"]:
             self.setup_right_panel_for_Home()
             self.update_table()
-        elif tab_name == "Advanced":
+
+        elif tab_name in ["Advanced", "Gelişmiş Detaylar"]:
             self.setup_right_panel_for_advanced()
             self.update_table()
-        elif tab_name == "Settings":
+
+        elif tab_name in ["Settings", "Ayarlar"]:
             self.right_layout.addWidget(QLabel("Settings Panel Placeholder"))
-        elif tab_name == "Graphical Visualization":
-            self.setup_graphical_visualization_tab()
+
+        # Translate the newly added widgets
+        self.translate_ui(self.current_language)
 
         
     def populate_table(self, readings: list[tuple], table: QTableWidget):
