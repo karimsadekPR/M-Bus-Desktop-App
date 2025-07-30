@@ -16,6 +16,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 from settings.settingsService import setup_settings_tab, translations
+from home.homeService import setup_home_tab
 
 
 btnStyle = """
@@ -67,7 +68,7 @@ class WaterMeterGUI(QMainWindow):
         
         
 
-        self.setup_home_tab()
+        setup_home_tab(self)
         self.setup_right_panel_for_Home()
         self.setup_advanced_tab()
         setup_settings_tab(self)
@@ -75,18 +76,18 @@ class WaterMeterGUI(QMainWindow):
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
 
 
-    def setup_home_tab(self):
-        layout = QVBoxLayout()
-        self.home_tab.setLayout(layout)
+    # def setup_home_tab(self):
+    #     layout = QVBoxLayout()
+    #     self.home_tab.setLayout(layout)
 
-        self.home_title = QLabel("Water Meter Readings")
-        self.home_title.setObjectName("home_title")
-        self.home_title.setAlignment(Qt.AlignCenter)
-        self.home_title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
-        layout.addWidget(self.home_title)
+    #     self.home_title = QLabel("Water Meter Readings")
+    #     self.home_title.setObjectName("home_title")
+    #     self.home_title.setAlignment(Qt.AlignCenter)
+    #     self.home_title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
+    #     layout.addWidget(self.home_title)
 
-        self.home_table = self.create_table()
-        layout.addWidget(self.home_table)
+    #     self.home_table = self.create_table()
+    #     layout.addWidget(self.home_table)
 
     def setup_advanced_tab(self):
         layout = QVBoxLayout()
@@ -101,29 +102,6 @@ class WaterMeterGUI(QMainWindow):
         self.advanced_table = self.create_table()
         layout.addWidget(self.advanced_table)
         
-    # def setup_settings_tab(self):
-    #     settings_tab = QWidget()
-    #     layout = QVBoxLayout()
-
-    #     # Language label
-    #     self.lang_label = QLabel("Language:")
-    #     self.lang_label.setObjectName("lang_label")
-    #     layout.addWidget(self.lang_label)
-
-    #     # Language combo box
-    #     self.lang_combo = QComboBox()
-    #     self.lang_combo.setObjectName("lang_combo")
-    #     self.lang_combo.addItems(translations["en"]["lang_combo"])
-    #     self.lang_combo.setCurrentIndex(0)
-    #     layout.addWidget(self.lang_combo)
-
-    #     # Connect language change signal
-    #     self.lang_combo.currentTextChanged.connect(self.change_language)
-
-    #     # Set layout to the tab
-    #     settings_tab.setLayout(layout)
-    #     self.tab_widget.addTab(settings_tab, "Settings")
-
     def setup_graphical_visualization_tab(self):
         if not hasattr(self, 'graphical_layout'):
             self.graphical_layout = QVBoxLayout()
