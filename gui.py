@@ -1,23 +1,18 @@
 import sys, csv
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QTableWidget, QLabel, QHeaderView, QPushButton, QComboBox,
-    QTableWidgetItem, QMessageBox, QDateEdit, QCheckBox, QLineEdit,
-    QTabWidget, QFileDialog, QSizePolicy, QAbstractButton
+    QTableWidget, QLabel, QHeaderView, QComboBox,
+    QTableWidgetItem, QMessageBox,
+    QTabWidget, QSizePolicy, QAbstractButton
 )
-from PyQt5.QtCore import Qt, QDate
-from database import get_all_readings, save_reading, save_meter, delete_meter, get_last_7_days
+from PyQt5.QtCore import Qt
+from database import get_all_readings, save_reading, save_meter, delete_meter
 from mbus_reader import read_meter
-from datetime import datetime
 
-# ⬇️ New matplotlib imports for embedding charts
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-
-from settings.settingsService import setup_settings_tab, translations
+from settings.settingsService import setup_settings_tab, translate_ui
 from home.homeService import setup_home_tab, setup_right_panel_for_Home
 from advanced.advancedService import setup_advanced_tab, setup_right_panel_for_Advanced
+from Graphical_visualization.Graphical_visualizationService import setup_graphical_visualization_tab
 
 
 btnStyle = """
@@ -71,59 +66,8 @@ class WaterMeterGUI(QMainWindow):
         setup_right_panel_for_Home(self)
         setup_advanced_tab(self)
         setup_settings_tab(self)
-        self.setup_graphical_visualization_tab()
+        setup_graphical_visualization_tab(self)
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
-
-    def setup_graphical_visualization_tab(self):
-        if not hasattr(self, 'graphical_layout'):
-            self.graphical_layout = QVBoxLayout()
-            self.graphical_visualization.setLayout(self.graphical_layout)
-
-            title = QLabel("Graphical Visualization")
-            title.setAlignment(Qt.AlignCenter)
-            title.setStyleSheet("font-size: 20px; font-weight: bold; padding: 10px;")
-            self.graphical_layout.addWidget(title)
-
-        if hasattr(self, 'graphical_chart') and self.graphical_chart:
-            self.graphical_layout.removeWidget(self.graphical_chart)
-            self.graphical_chart.setParent(None)
-
-        self.graphical_chart = self.create_graphical_chart()
-        self.graphical_layout.addWidget(self.graphical_chart)
-
-
-    def create_graphical_chart(self):
-            last_7_days = get_last_7_days()
-            print(last_7_days)
-
-            days = [row[0] for row in last_7_days]
-            usage = [row[1] for row in last_7_days]
-
-            #print(last_7_days, days, usage)
-
-            fig = Figure(figsize=(12, 6))
-            ax = fig.add_subplot(111)
-
-            ax.plot(days, usage, marker='o', linestyle='-', color='blue', label='Usage (m³)')
-
-            # Add value labels on the points
-            for i, value in enumerate(usage):
-                ax.text(days[i], value, f"{value:.2f}", fontsize=9, ha='center', va='bottom')
-
-            ax.set_title("Water Usage Over Last 7 Days")
-            ax.set_xlabel("Date")
-            ax.set_ylabel("Total Usage (m³)")
-
-            ax.set_yscale('log')  
-
-            ax.grid(True, linestyle='--', alpha=0.6)
-            ax.legend()
-
-            canvas = FigureCanvas(fig)
-            canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-            canvas.updateGeometry()
-
-            return canvas
     
     def create_table(self) -> QTableWidget:
         table = QTableWidget()
@@ -148,32 +92,7 @@ class WaterMeterGUI(QMainWindow):
                 elif item.layout() is not None:
                     self.clear_layout(item.layout())
 
-    def translate_ui(self, lang):
-        for widget in self.findChildren(QWidget):
-            obj_name = widget.objectName()
-            if obj_name in translations[lang]:
-                if isinstance(widget, QComboBox):
-                    current_text = widget.currentText()
-                    widget.clear()
-                    widget.addItems(translations[lang][obj_name])
-                    if current_text in translations[lang][obj_name]:
-                        widget.setCurrentText(current_text)
-                elif isinstance(widget, QAbstractButton):
-                    widget.setText(translations[lang][obj_name])
-                elif isinstance(widget, QLabel):
-                    widget.setText(translations[lang][obj_name])
-
-
-    def change_language(self, selected_lang):
-        self.lang_combo.blockSignals(True)
-        if selected_lang.lower().startswith("t"):
-            self.current_language = "tr"
-        else:
-            self.current_language = "en"
-
-        self.translate_ui(self.current_language)
-        self.lang_combo.blockSignals(False)
-
+   
     def on_tab_changed(self, index):
         tab_name = self.tab_widget.tabText(index)
         print(f"Switched to tab: {tab_name}")
@@ -189,9 +108,9 @@ class WaterMeterGUI(QMainWindow):
 
         elif tab_name in ["Settings", "Ayarlar"]:
             self.right_layout.addWidget(QLabel("Settings Panel Placeholder"))
-            self.translate_ui(self.current_language)
+            translate_ui(self, self.current_language)
         elif tab_name in ["Graphical Visualization"]:
-            self.setup_graphical_visualization_tab()
+            setup_graphical_visualization_tab(self)
         
     def populate_table(self, readings: list[tuple], table: QTableWidget):
         table.setRowCount(0)

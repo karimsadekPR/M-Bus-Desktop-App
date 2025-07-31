@@ -76,8 +76,33 @@ def setup_settings_tab(self):
         layout.addWidget(self.lang_combo)
 
         # Connect language change signal
-        self.lang_combo.currentTextChanged.connect(self.change_language)
+        self.lang_combo.currentTextChanged.connect(lambda: change_language(self, self.lang_combo.currentText()))
 
         # Set layout to the tab
         settings_tab.setLayout(layout)
         self.tab_widget.addTab(settings_tab, "Settings")
+
+def translate_ui(self, lang):
+        for widget in self.findChildren(QWidget):
+            obj_name = widget.objectName()
+            if obj_name in translations[lang]:
+                if isinstance(widget, QComboBox):
+                    current_text = widget.currentText()
+                    widget.clear()
+                    widget.addItems(translations[lang][obj_name])
+                    if current_text in translations[lang][obj_name]:
+                        widget.setCurrentText(current_text)
+                elif isinstance(widget, QAbstractButton):
+                    widget.setText(translations[lang][obj_name])
+                elif isinstance(widget, QLabel):
+                    widget.setText(translations[lang][obj_name])
+
+def change_language(self, selected_lang):
+        self.lang_combo.blockSignals(True)
+        if selected_lang.lower().startswith("t"):
+            self.current_language = "tr"
+        else:
+            self.current_language = "en"
+
+        translate_ui(self, self.current_language)
+        self.lang_combo.blockSignals(False)
