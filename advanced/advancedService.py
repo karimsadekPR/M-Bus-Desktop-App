@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, QDate
 from style.btnStyle import btnStyle
 from tools.exportCSV import export_table_to_csv
+from tools.deleteReadings import delete_selected_rows
 
 def setup_advanced_tab(self):
         layout = QVBoxLayout()
@@ -71,7 +72,7 @@ def setup_right_panel_for_Advanced(self):
         self.btn_delete = QPushButton("Delete")
         self.btn_delete.setObjectName("btn_delete")
         self.btn_delete.setStyleSheet(btnStyle)
-        self.btn_delete.clicked.connect(self.delete_selected_rows)
+        self.btn_delete.clicked.connect(lambda: delete_selected_rows(self))
         self.right_layout.addWidget(self.btn_delete)
 
         self.sort_box = QComboBox()
