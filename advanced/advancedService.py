@@ -66,7 +66,7 @@ def setup_right_panel_for_Advanced(self):
 
         self.usage_chart_btn = QPushButton("Show Usage Chart")
         self.usage_chart_btn.setStyleSheet(btnStyle)
-        self.usage_chart_btn.clicked.connect(self.show_usage_chart)
+        self.usage_chart_btn.clicked.connect(lambda: self.show_usage_chart)
         self.right_layout.addWidget(self.usage_chart_btn)
 
         self.btn_delete = QPushButton("Delete")
@@ -82,7 +82,7 @@ def setup_right_panel_for_Advanced(self):
 
         self.sort_button = QPushButton("Sort")
         self.sort_button.setObjectName("sort_button")
-        self.sort_button.clicked.connect(self.sort_table)
+        self.sort_button.clicked.connect(lambda: self.sort_table)
         self.right_layout.addWidget(self.sort_button)
 
         self.right_layout.addSpacing(10)
@@ -116,5 +116,5 @@ def setup_right_panel_for_Advanced(self):
         self.filter_button = QPushButton("Filter")
         self.filter_button.setObjectName("filter_button")
         self.filter_button.setStyleSheet(btnStyle)
-        self.filter_button.clicked.connect(self.apply_all_filters)
+        self.filter_button.clicked.connect(lambda: self.apply_all_filters)
         self.right_layout.addWidget(self.filter_button)
