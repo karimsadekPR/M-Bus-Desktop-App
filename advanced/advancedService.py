@@ -110,11 +110,11 @@ def setup_right_panel_for_Advanced(self):
         self.right_layout.addWidget(self.filter_box)
 
         self.filter_input = QLineEdit()
-        self.filter_input.setPlaceholderText("Enter filter value...") #to be changed
+        self.filter_input.setPlaceholderText("Enter filter value...") 
         self.right_layout.addWidget(self.filter_input)
 
         self.filter_button = QPushButton("Filter")
         self.filter_button.setObjectName("filter_button")
         self.filter_button.setStyleSheet(btnStyle)
-        self.filter_button.clicked.connect(lambda: self.apply_all_filters)
+        self.filter_button.clicked.connect(lambda: self.apply_all_filters())
         self.right_layout.addWidget(self.filter_button)

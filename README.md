@@ -33,7 +33,41 @@ buttons and GUI with a text "Last reading was at: 22/9/2025 - 2:00:00 (DONE)
 
 9. Auto refresh settings toggle
 
-10. 
+10. Meter Comparison View
+Description: Show usage trends of multiple meters on the same chart, each in a different color.
+
+UI Addition: Multi-select dropdown or checkboxes for meter IDs.
+
+Why: Useful for comparing consumption patterns across buildings/floors.
+
+11. Total and Average Usage Summary
+Description: Add a small info panel above the graph:
+
+Total water usage
+
+Average daily usage
+
+Highest/lowest usage day
+
+Why: Gives at-a-glance insights for quick decision-making.
+
+12. Meter Health Status
+Description: Add a visual tag per meter:
+
+✅ Active (has data in the last 24h)
+
+⚠️ Idle (no data for 1–2 days)
+
+❌ Offline (no data for 3+ days)
+
+Why: Very useful for maintenance teams to detect dead meters.
+
+13. Export Graph to Image
+Description: Allow saving the graph as PNG or PDF.
+
+Button label: Save Graph as Image
+
+Why: Useful for reports, printing, or sharing via email.
 
 
 
