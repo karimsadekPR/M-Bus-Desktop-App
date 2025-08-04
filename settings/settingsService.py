@@ -30,6 +30,12 @@ translations = {
         'tab_0': "Home",
         'tab_1': "Advanced",
         'tab_2': "Settings",
+        'Graphical Visualization':"Graphical Visualization",
+        "chart_title": "Water Usage Over Last 7 Days",
+        "x_label": "Date",
+        "y_label": "Total Usage (m³)",
+        "usage_chart_btn": "Show Usage Chart",
+        "export_btn":"Export to CSV",
         # Add more as needed
     },
     'tr': {
@@ -55,6 +61,12 @@ translations = {
         'tab_0': "Ana Sayfa",
         'tab_1': "Gelişmiş",
         'tab_2': "Ayarlar",
+        'Graphical Visualization':"Grafiksel Görünüm",
+        "chart_title": "Son 7 Günlük Su Kullanımı",
+        "x_label": "Tarih",
+        "y_label": "Toplam Kullanım (m³)",
+        "usage_chart_btn":"Kullanım Tablosunu Göster",
+        "export_btn":"CSV'ye aktar",
         # Add more as needed
     }
 }
@@ -70,8 +82,7 @@ def setup_settings_tab(self):
 
         # Language combo box
         self.lang_combo = QComboBox()
-        self.lang_combo.setObjectName("lang_combo")
-        self.lang_combo.addItems(translations["en"]["lang_combo"])
+        self.lang_combo.addItems(['English', 'Türkçe'])
         self.lang_combo.setCurrentIndex(0)
         layout.addWidget(self.lang_combo)
 

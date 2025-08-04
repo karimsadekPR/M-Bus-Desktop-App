@@ -7,12 +7,13 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from database import get_last_7_days
-
+from settings.settingsService import translations
 # ⬇️ New matplotlib imports for embedding charts
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 def create_graphical_chart(self):
+            lang = self.current_language
             last_7_days = get_last_7_days()
             print(last_7_days)
 
@@ -31,8 +32,12 @@ def create_graphical_chart(self):
                 ax.text(days[i], value, f"{value:.2f}", fontsize=9, ha='center', va='bottom')
 
             ax.set_title("Water Usage Over Last 7 Days")
-            ax.set_xlabel("Date")
+            ax.set_xlabel("Date / Tarih")
             ax.set_ylabel("Total Usage (m³)")
+            #self.ax.setObjectName("axData")
+            ax.set_title(translations[lang]["chart_title"])
+            ax.set_xlabel(translations[lang]["x_label"])
+            ax.set_ylabel(translations[lang]["y_label"])
 
             ax.set_yscale('log')  
 
@@ -51,6 +56,7 @@ def setup_graphical_visualization_tab(self):
             self.graphical_visualization.setLayout(self.graphical_layout)
 
             title = QLabel("Graphical Visualization")
+            title.setObjectName("Graphical Visualization")
             title.setAlignment(Qt.AlignCenter)
             title.setStyleSheet("font-size: 20px; font-weight: bold; padding: 10px;")
             self.graphical_layout.addWidget(title)
