@@ -24,7 +24,7 @@ Add a graph view (e.g., line chart of usage over time). with the mean for a day,
 Button label: Show Usage Chart
 Why: Great for spotting trends, anomalies, or peak usage periods.
 
-6. ENG - TUR (LAN)
+6. ENG - TUR (LAN) (Done)
 
 7. A homePage that only contains the recent readings of all meters with basic
 buttons and GUI with a text "Last reading was at: 22/9/2025 - 2:00:00 (DONE)

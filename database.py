@@ -72,6 +72,18 @@ def get_all_readings():
     return rows
 
     
+def get_Readings_ById(meterId):
+    with sqlite3.connect('meter_data.db') as conn:
+        cur = conn.cursor()
+
+        if meterId == "All":
+            cur.execute('SELECT * FROM readings')
+        else:
+            cur.execute('SELECT * FROM readings WHERE meterId = ?', (meterId,))
+
+        rows = cur.fetchall()  
+        return rows
+
 def get_meter_ById(meterId):
     conn = sqlite3.connect('meter_data.db')
     cur = conn.cursor()
