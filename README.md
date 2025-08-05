@@ -33,7 +33,7 @@ buttons and GUI with a text "Last reading was at: 22/9/2025 - 2:00:00 (DONE)
 
 9. Auto refresh settings toggle
 
-10. Meter Comparison View
+10. Meter Comparison View (DONE)
 Description: Show usage trends of multiple meters on the same chart, each in a different color.
 
 UI Addition: Multi-select dropdown or checkboxes for meter IDs.
