@@ -17,11 +17,16 @@ from datetime import datetime
 import matplotlib.dates as mdates
 
 
+from datetime import datetime
+import matplotlib.dates as mdates
+
 def create_graphical_chart(self, meter_ids, date_limit=None):
     lang = self.current_language
-    fig = Figure(figsize=(12, 6))
+    fig = Figure(figsize=(14, 7))  # Wider chart
     ax = fig.add_subplot(111)
-    colors = ['blue', 'green', 'red', 'orange', 'purple', 'brown', 'cyan', 'magenta']
+    
+    # Better color palette
+    colors = ['#007acc', '#28a745', '#dc3545', '#fd7e14', '#6f42c1', '#20c997', '#6610f2', '#17a2b8']
 
     for idx, meter_id in enumerate(meter_ids):
         readings = get_Readings_ById(meter_id)
@@ -31,33 +36,48 @@ def create_graphical_chart(self, meter_ids, date_limit=None):
         if not readings:
             continue
 
-        # ✅ Fix here
         days = [datetime.strptime(row[0], "%Y-%m-%d") for row in readings]
         usage = [row[1] for row in readings]
 
         color = colors[idx % len(colors)]
-        ax.plot(days, usage, marker='o', linestyle='-', color=color, label=f"Meter {meter_id}")
+        ax.plot(
+            days, usage, marker='o', linestyle='-', linewidth=2.5,
+            color=color, label=f"Meter {meter_id}"
+        )
 
         for i, value in enumerate(usage):
-            ax.text(days[i], value, f"{value:.2f}", fontsize=8, ha='center', va='bottom')
+            ax.text(
+                days[i], value + max(usage)*0.02,  # place above points
+                f"{value:.2f}", fontsize=9, ha='center', va='bottom', color=color
+            )
 
-    # Format x-axis as dates
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    # ✨ Stylish axes
+    ax.set_title(translations[lang]["chart_title"], fontsize=18, fontweight='bold')
+    ax.set_xlabel(translations[lang]["x_label"], fontsize=14)
+    ax.set_ylabel(translations[lang]["y_label"], fontsize=14)
+
+    # ✅ Date formatting
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
     ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-    fig.autofmt_xdate()
+    fig.autofmt_xdate(rotation=30)
 
-    ax.set_title(translations[lang]["chart_title"])
-    ax.set_xlabel(translations[lang]["x_label"])
-    ax.set_ylabel(translations[lang]["y_label"])
+    # ✨ Grid and tick style
+    ax.grid(True, linestyle='--', alpha=0.5)
+    ax.tick_params(axis='both', labelsize=12)
 
-    ax.grid(True, linestyle='--', alpha=0.6)
-    ax.legend()
+    # ✨ Legend styling
+    legend = ax.legend(fontsize=12, loc='upper left', frameon=False)
+
+    # ✨ Background color
+    ax.set_facecolor('#f9f9f9')
+    fig.patch.set_facecolor('#ffffff')
 
     canvas = FigureCanvas(fig)
     canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
     canvas.updateGeometry()
 
     return canvas
+
 
 def setup_right_panel_for_GV(self):
     # Ensure right_layout is initialized
