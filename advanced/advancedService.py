@@ -67,11 +67,11 @@ def setup_right_panel_for_Advanced(self):
         self.export_btn.clicked.connect(lambda: export_table_to_csv(self))
         self.right_layout.addWidget(self.export_btn)
 
-        self.usage_chart_btn = QPushButton("Show Usage Chart")
-        self.usage_chart_btn.setStyleSheet(btnStyle) #######################################
-        self.usage_chart_btn.setText(translations[lang]["usage_chart_btn"])
-        self.usage_chart_btn.clicked.connect(lambda: self.show_usage_chart)
-        self.right_layout.addWidget(self.usage_chart_btn)
+        # self.usage_chart_btn = QPushButton("Show Usage Chart")
+        # self.usage_chart_btn.setStyleSheet(btnStyle) #######################################
+        # self.usage_chart_btn.setText(translations[lang]["usage_chart_btn"])
+        # self.usage_chart_btn.clicked.connect(lambda: self.show_usage_chart)
+        # self.right_layout.addWidget(self.usage_chart_btn)
 
         self.btn_delete = QPushButton("Delete") 
         self.btn_delete.setText(translations[lang]["btn_delete"])
