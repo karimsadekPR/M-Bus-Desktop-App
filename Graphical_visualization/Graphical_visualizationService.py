@@ -13,6 +13,9 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from style.btnStyle import btnStyle
 
+from datetime import datetime
+import matplotlib.dates as mdates
+
 
 def create_graphical_chart(self, meter_ids, date_limit=None):
     lang = self.current_language
@@ -22,14 +25,14 @@ def create_graphical_chart(self, meter_ids, date_limit=None):
 
     for idx, meter_id in enumerate(meter_ids):
         readings = get_Readings_ById(meter_id)
-
         if date_limit:
             readings = readings[-date_limit:]
 
         if not readings:
             continue
 
-        days = [row[0] for row in readings]
+        # ✅ Fix here
+        days = [datetime.strptime(row[0], "%Y-%m-%d") for row in readings]
         usage = [row[1] for row in readings]
 
         color = colors[idx % len(colors)]
@@ -38,10 +41,15 @@ def create_graphical_chart(self, meter_ids, date_limit=None):
         for i, value in enumerate(usage):
             ax.text(days[i], value, f"{value:.2f}", fontsize=8, ha='center', va='bottom')
 
+    # Format x-axis as dates
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    ax.xaxis.set_major_locator(mdates.AutoDateLocator())
+    fig.autofmt_xdate()
+
     ax.set_title(translations[lang]["chart_title"])
     ax.set_xlabel(translations[lang]["x_label"])
     ax.set_ylabel(translations[lang]["y_label"])
-    ax.set_yscale('log')
+
     ax.grid(True, linestyle='--', alpha=0.6)
     ax.legend()
 
@@ -50,7 +58,6 @@ def create_graphical_chart(self, meter_ids, date_limit=None):
     canvas.updateGeometry()
 
     return canvas
-
 
 def setup_right_panel_for_GV(self):
     # Ensure right_layout is initialized

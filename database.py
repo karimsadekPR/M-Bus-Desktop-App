@@ -77,11 +77,20 @@ def get_Readings_ById(meterId):
         cur = conn.cursor()
 
         if meterId == "All":
-            cur.execute('SELECT * FROM readings')
+            cur.execute('''
+            SELECT DATE(timestamp) as day, SUM(water_usage) as total_usage
+            FROM readings
+            GROUP BY DATE(timestamp)
+            ORDER BY day ASC''')
         else:
-            cur.execute('SELECT * FROM readings WHERE meterId = ?', (meterId,))
+            cur.execute('''
+            SELECT DATE(timestamp) as day, SUM(water_usage) as total_usage
+            FROM readings
+            WHERE meterId = ?
+            GROUP BY DATE(timestamp)
+            ORDER BY day ASC''', (meterId,))
 
-        rows = cur.fetchall()  
+        rows = cur.fetchall()
         return rows
 
 def get_meter_ById(meterId):
