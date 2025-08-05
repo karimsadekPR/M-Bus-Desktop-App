@@ -12,7 +12,7 @@ from mbus_reader import read_meter
 from settings.settingsService import setup_settings_tab, translate_ui
 from home.homeService import setup_home_tab, setup_right_panel_for_Home
 from advanced.advancedService import setup_advanced_tab, setup_right_panel_for_Advanced
-from Graphical_visualization.Graphical_visualizationService import setup_graphical_visualization_tab
+from Graphical_visualization.Graphical_visualizationService import  setup_right_panel_for_GV
 
 
 btnStyle = """
@@ -66,7 +66,7 @@ class WaterMeterGUI(QMainWindow):
         setup_right_panel_for_Home(self)
         setup_advanced_tab(self)
         setup_settings_tab(self)
-        setup_graphical_visualization_tab(self)
+        
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
     
     def create_table(self) -> QTableWidget:
@@ -109,8 +109,9 @@ class WaterMeterGUI(QMainWindow):
         elif tab_name in ["Settings", "Ayarlar"]:
             self.right_layout.addWidget(QLabel("Settings Panel Placeholder"))
             translate_ui(self, self.current_language)
+            
         elif tab_name in ["Graphical Visualization"]:
-            setup_graphical_visualization_tab(self)
+            setup_right_panel_for_GV(self)
         
     def populate_table(self, readings: list[tuple], table: QTableWidget):
         table.setRowCount(0)

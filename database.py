@@ -72,6 +72,27 @@ def get_all_readings():
     return rows
 
     
+def get_Readings_ById(meterId):
+    with sqlite3.connect('meter_data.db') as conn:
+        cur = conn.cursor()
+
+        if meterId == "All":
+            cur.execute('''
+            SELECT DATE(timestamp) as day, SUM(water_usage) as total_usage
+            FROM readings
+            GROUP BY DATE(timestamp)
+            ORDER BY day ASC''')
+        else:
+            cur.execute('''
+            SELECT DATE(timestamp) as day, SUM(water_usage) as total_usage
+            FROM readings
+            WHERE meterId = ?
+            GROUP BY DATE(timestamp)
+            ORDER BY day ASC''', (meterId,))
+
+        rows = cur.fetchall()
+        return rows
+
 def get_meter_ById(meterId):
     conn = sqlite3.connect('meter_data.db')
     cur = conn.cursor()
