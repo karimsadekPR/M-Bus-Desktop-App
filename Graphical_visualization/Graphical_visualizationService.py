@@ -1,3 +1,4 @@
+# gui.py
 
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -11,6 +12,7 @@ from settings.settingsService import translations
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from style.btnStyle import btnStyle
+
 
 def create_graphical_chart(self, meter_ids, date_limit=None):
     lang = self.current_language
@@ -50,7 +52,48 @@ def create_graphical_chart(self, meter_ids, date_limit=None):
     return canvas
 
 
+def setup_right_panel_for_GV(self):
+    # Ensure right_layout is initialized
+    if not hasattr(self, 'right_layout'):
+        self.right_layout = QVBoxLayout()
+        self.right_panel_widget = QWidget()
+        self.right_panel_widget.setLayout(self.right_layout)
+        self.main_layout.addWidget(self.right_panel_widget)  # main_layout should be your outer layout
+
+    self.right_layout.addStretch()
+
+    self.ShowMeterLabel = QLabel("Show Meter Usage")
+    self.right_layout.addWidget(self.ShowMeterLabel)
+
+    # Multi-select meter list
+    self.meter_list = QListWidget()
+    self.meter_list.setSelectionMode(QListWidget.MultiSelection)
+    for meter_id in ["1", "2", "3"]:
+        self.meter_list.addItem(QListWidgetItem(meter_id))
+    self.right_layout.addWidget(self.meter_list)
+
+    # Date range dropdown
+    self.date_range_select = QComboBox()
+    self.date_range_select.addItems(["Last 7 Days", "Last 30 Days", "All Time"])
+    self.right_layout.addWidget(self.date_range_select)
+
+    # Button to generate chart
+    self.filter_button = QPushButton("Show Chart")
+    self.filter_button.setStyleSheet(btnStyle)
+    self.filter_button.clicked.connect(lambda: setup_graphical_visualization_tab(self))
+    self.right_layout.addWidget(self.filter_button)
+
+
 def setup_graphical_visualization_tab(self):
+    # Ensure required components are initialized
+    if not hasattr(self, 'meter_list') or not hasattr(self, 'date_range_select'):
+        QMessageBox.warning(self, "Error", "Graphical Visualization panel is not initialized.")
+        return
+    
+    if not hasattr(self, 'meter_list'):
+        QMessageBox.warning(self, "Error", "Meter list not initialized. Please try again.")
+        return
+
     if not hasattr(self, 'graphical_layout'):
         self.graphical_layout = QVBoxLayout()
         self.graphical_visualization.setLayout(self.graphical_layout)
@@ -64,11 +107,9 @@ def setup_graphical_visualization_tab(self):
         self.graphical_layout.removeWidget(self.graphical_chart)
         self.graphical_chart.setParent(None)
 
-    # Get selected meters
     selected_items = self.meter_list.selectedItems()
     selected_meter_ids = [item.text() for item in selected_items]
 
-    # Get date filter
     range_text = self.date_range_select.currentText()
     if range_text == "Last 7 Days":
         date_limit = 7
@@ -77,35 +118,17 @@ def setup_graphical_visualization_tab(self):
     else:
         date_limit = None
 
-    self.graphical_chart = self.create_graphical_chart(selected_meter_ids, date_limit)
+    self.graphical_chart = create_graphical_chart(self, selected_meter_ids, date_limit)
     self.graphical_layout.addWidget(self.graphical_chart)
 
 
-def setup_right_panel_for_GV(self):
-        self.right_layout.addStretch()
+def on_tab_changed(self, index):
+    tab_text = self.tabs.tabText(index)
+    print(f"Switched to tab: {tab_text}")
 
-        self.ShowMeterlable = QLabel("Show Meter Usage")
-        self.right_layout.addWidget(self.ShowMeterlable)
+    if tab_text == "Graphical Visualization":
+        # Initialize panel if not already
+        if not hasattr(self, 'meter_list'):
+            self.setup_right_panel_for_GV()
 
-        # Multi-select meter list
-        self.meter_list = QListWidget()
-        self.meter_list.setSelectionMode(QListWidget.MultiSelection)
-        for meter_id in ["1", "2", "3"]:
-            self.meter_list.addItem(QListWidgetItem(meter_id))
-        self.right_layout.addWidget(self.meter_list)
-
-        # Date range dropdown
-        self.date_range_select = QComboBox()
-        self.date_range_select.addItems(["Last 7 Days", "Last 30 Days", "All Time"])
-        self.right_layout.addWidget(self.date_range_select)
-
-        # Button to generate chart
-        self.filter_button = QPushButton("Show Chart")
-        self.filter_button.setStyleSheet(btnStyle)
-        self.filter_button.clicked.connect(self.setup_graphical_visualization_tab)
-        self.right_layout.addWidget(self.filter_button)
-
-
-def get_meter(meterId):
-    readings = get_Readings_ById(meterId)
-    print(readings)
+        setup_graphical_visualization_tab(self)
