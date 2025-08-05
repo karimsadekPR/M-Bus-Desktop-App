@@ -69,5 +69,20 @@ Button label: Save Graph as Image
 
 Why: Useful for reports, printing, or sharing via email.
 
+14. Serial Port Configuration
+Allows users to select the correct COM port, baud rate, and enable auto-reconnect to maintain stable communication with the water meter.
+
+15. Data Refresh Interval
+Lets users define how frequently the app retrieves new data from the meter (e.g., 1s, 5s, 10s) to balance performance and responsiveness.
+
+16. Units of Measurement
+Provides options to display data in liters, gallons, or cubic meters, depending on regional or user preference.
+
+17. Enable Data Logging
+Enables automatic recording of incoming data for history or troubleshooting, with the ability to define a log file path.
+
+18. Export Format
+Allows users to choose export formats like CSV, JSON, or Excel for sharing or further data analysis.
+
 
 
