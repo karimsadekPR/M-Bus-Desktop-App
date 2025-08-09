@@ -57,8 +57,8 @@ def create_graphical_chart(self, meter_ids, date_limit=None):
     ax.set_ylabel(translations[lang]["y_label"], fontsize=14)
 
     # ✅ Date formatting
+    ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
-    ax.xaxis.set_major_locator(mdates.AutoDateLocator())
     fig.autofmt_xdate(rotation=30)
 
     # ✨ Grid and tick style

@@ -81,8 +81,5 @@ Provides options to display data in liters, gallons, or cubic meters, depending 
 17. Enable Data Logging
 Enables automatic recording of incoming data for history or troubleshooting, with the ability to define a log file path.
 
-18. Export Format
-Allows users to choose export formats like CSV, JSON, or Excel for sharing or further data analysis.
-
 
 

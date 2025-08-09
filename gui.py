@@ -35,7 +35,7 @@ class WaterMeterGUI(QMainWindow):
         super().__init__()
         self.current_language = 'en'
         self.setWindowTitle("Water Meter GUI")
-        self.resize(1500, 700)
+        self.resize(1800, 900)
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -180,9 +180,10 @@ class WaterMeterGUI(QMainWindow):
                 return True
         return False
 
-    def read_new_meter(self):
-        if self.read_and_save_meter(3):
-            self.update_table()
+    def read_new_meter(self, meterId):
+        print(meterId)
+        if self.read_and_save_meter(meterId):
+           self.update_table()
         else:
             QMessageBox.warning(self, "Warning", "Failed to read meter data.")
 
