@@ -169,28 +169,66 @@ class WaterMeterGUI(QMainWindow):
         elif current_tab == self.advanced_tab:
             self.advanced_table.sortItems(column_index, Qt.AscendingOrder)
 
-    def read_and_save_meter(self, meter_id: int) -> bool:
+    def read_and_save_meter(self, meter_id: int) -> tuple:
+        """Read meter data and return the newly saved reading."""
         data = read_meter(meter_id)
+        print(data)
         if data:
             timestamp = data.get("timestamp")
             usage = data.get("value")
             if timestamp and usage is not None:
                 save_meter(meter_id)
                 save_reading(meter_id, timestamp, usage)
-                return True
-        return False
+                # Return the newly added reading as a tuple
+                return (None, meter_id, timestamp, usage)
+        return None
+
+    def display_new_readings(self, new_readings: list[tuple], table: QTableWidget = None):
+        """Display only the newly read readings in the appropriate table."""
+        if table is None:
+            current_tab = self.tab_widget.currentWidget()
+            if current_tab == self.home_tab:
+                table = self.home_table
+            elif current_tab == self.advanced_tab:
+                table = self.advanced_table
+            else:
+                return
+        
+        # Clear the table and show only new readings
+        table.setRowCount(0)
+        for row_data in new_readings:
+            if row_data:  # Check if reading is not None
+                row = table.rowCount()
+                table.insertRow(row)
+                checkbox_item = QTableWidgetItem()
+                checkbox_item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
+                checkbox_item.setCheckState(Qt.Unchecked)
+                table.setItem(row, 0, checkbox_item)
+                table.setItem(row, 1, QTableWidgetItem(str(row_data[1])))
+                table.setItem(row, 2, QTableWidgetItem(str(row_data[2])))
+                table.setItem(row, 3, QTableWidgetItem(str(row_data[3])))
 
     def read_new_meter(self, meterId):
         print(meterId)
-        if self.read_and_save_meter(meterId):
-           self.update_table()
+        new_reading = self.read_and_save_meter(meterId)
+        if new_reading:
+            # Display only the newly read reading
+            self.display_new_readings([new_reading])
         else:
             QMessageBox.warning(self, "Warning", "Failed to read meter data.")
 
     def read_all_meters(self):
+        new_readings = []
         for meter_id in [1, 2, 3]:
-            self.read_and_save_meter(meter_id)
-        self.update_table()
+            new_reading = self.read_and_save_meter(meter_id)
+            if new_reading:
+                new_readings.append(new_reading)
+        
+        if new_readings:
+            # Display only the newly read readings
+            self.display_new_readings(new_readings)
+        else:
+            QMessageBox.warning(self, "Warning", "No new meter data was read.")
 
     def filter_by_date(self, readings: list[tuple]) -> list[tuple]:
         if not self.checkbox.isChecked():
