@@ -70,47 +70,50 @@ translations = {
         # Add more as needed
     }
 }
+
 def setup_settings_tab(self):
         settings_tab = QWidget()
         layout = QVBoxLayout()
 
-        self.lang_label = QLabel(translations[self.current_language]['lang_label'])
+        # Language label
+        self.lang_label = QLabel("Language:")
         self.lang_label.setObjectName("lang_label")
         layout.addWidget(self.lang_label)
 
+        # Language combo box
         self.lang_combo = QComboBox()
-        self.lang_combo.setObjectName("lang_combo")
-        self.lang_combo.addItems(translations[self.current_language]['lang_combo'])
-        self.lang_combo.setCurrentIndex(0 if self.current_language == 'en' else 1)
-        self.lang_combo.currentTextChanged.connect(on_language_change(self, self.current_language))
+        self.lang_combo.addItems(['English', 'Türkçe'])
+        self.lang_combo.setCurrentIndex(0)
         layout.addWidget(self.lang_combo)
 
+        # Connect language change signal
+        self.lang_combo.currentTextChanged.connect(lambda: change_language(self, self.lang_combo.currentText()))
+
+        # Set layout to the tab
         settings_tab.setLayout(layout)
-        self.tab_widget.addTab(settings_tab, translations[self.current_language]['tab_2'])
+        self.tab_widget.addTab(settings_tab, "Settings")
 
 def translate_ui(self, lang):
         for widget in self.findChildren(QWidget):
-            name = widget.objectName()
-            if name in translations[lang]:
+            obj_name = widget.objectName()
+            if obj_name in translations[lang]:
                 if isinstance(widget, QComboBox):
-                    current = widget.currentText()
+                    current_text = widget.currentText()
                     widget.clear()
-                    widget.addItems(translations[lang][name])
-                    if current in translations[lang][name]:
-                        widget.setCurrentText(current)
-                elif isinstance(widget, (QAbstractButton, QLabel)):
-                    widget.setText(translations[lang][name])
+                    widget.addItems(translations[lang][obj_name])
+                    if current_text in translations[lang][obj_name]:
+                        widget.setCurrentText(current_text)
+                elif isinstance(widget, QAbstractButton):
+                    widget.setText(translations[lang][obj_name])
+                elif isinstance(widget, QLabel):
+                    widget.setText(translations[lang][obj_name])
 
-        # Update tab titles
-        for i, tab_key in enumerate(['tab_0', 'tab_1', 'tab_2']):
-            if i < self.tab_widget.count():
-                self.tab_widget.setTabText(i, translations[lang][tab_key])
-
-        # Update window title
-        self.setWindowTitle(translations[lang]['window_title'])
-
-def on_language_change(self, selected_lang):
+def change_language(self, selected_lang):
         self.lang_combo.blockSignals(True)
-        self.current_language = 'tr' if selected_lang.lower().startswith('t') else 'en'
-        self.translate_ui(self.current_language)
+        if selected_lang.lower().startswith("t"):
+            self.current_language = "tr"
+        else:
+            self.current_language = "en"
+
+        translate_ui(self, self.current_language)
         self.lang_combo.blockSignals(False)
