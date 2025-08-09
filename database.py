@@ -139,9 +139,14 @@ def get_last_7_days():
         rows = cur.fetchall()
     return rows
 
-def Add_new_reading():
+def get_all_meter_ids():
+    """Return a list of all meter IDs stored in the meters table."""
     conn = sqlite3.connect('meter_data.db')
     cur = conn.cursor()
-    
+    cur.execute('SELECT meterId FROM meters ORDER BY meterId ASC')
+    rows = cur.fetchall()
+    conn.close()
+    # Flatten list of tuples into a list of IDs
+    return [row[0] for row in rows]
 
 

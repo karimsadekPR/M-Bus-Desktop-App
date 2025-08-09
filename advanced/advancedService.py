@@ -42,6 +42,7 @@ def create_table() -> QTableWidget:
 def get_meter_id(self):
     meter_id, ok = QInputDialog.getText(self, "Enter Meter ID", "Meter ID:")
     if ok and meter_id.strip():
+        self.read_and_save_meter(meter_id)
         QMessageBox.information(self, "Meter ID Entered", f"You entered: {meter_id}")
     elif ok:  # User pressed OK but left it blank
         QMessageBox.warning(self, "Invalid Input", "Please enter a valid Meter ID.")

@@ -82,4 +82,21 @@ Provides options to display data in liters, gallons, or cubic meters, depending 
 Enables automatic recording of incoming data for history or troubleshooting, with the ability to define a log file path.
 
 
+# def toggle_auto_refresh(self, state):
+    #     if state == Qt.Checked:
+    #         interval = self.refresh_interval_input.value() * 1000  # ms
+    #         self.refresh_interval_input.setEnabled(True)
+
+    #         self.refresh_timer = QTimer()
+    #         self.refresh_timer.timeout.connect(self.update_table)
+    #         self.refresh_timer.start(interval)
+    #         print("Auto-refresh started every", interval / 1000, "seconds")
+    #     else:
+    #         self.refresh_interval_input.setEnabled(False)
+    #         if hasattr(self, 'refresh_timer'):
+    #             self.refresh_timer.stop()
+    #             print("Auto-refresh stopped")
+
+
+
 
