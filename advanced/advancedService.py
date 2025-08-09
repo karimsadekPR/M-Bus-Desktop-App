@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QDate
 from style.btnStyle import btnStyle
-from tools.exportCSV import export_table_to_csv
+from tools.exportCSV import export_selected_to_csv, export_selected_to_excel, export_selected_to_txt
 from tools.deleteReadings import delete_selected_rows
 from settings.settingsService import translations
 
@@ -42,11 +42,33 @@ def create_table() -> QTableWidget:
 def get_meter_id(self):
     meter_id, ok = QInputDialog.getText(self, "Enter Meter ID", "Meter ID:")
     if ok and meter_id.strip():
-        self.read_and_save_meter(meter_id)
+        self.read_new_meter(meter_id)
         QMessageBox.information(self, "Meter ID Entered", f"You entered: {meter_id}")
     elif ok:  # User pressed OK but left it blank
         QMessageBox.warning(self, "Invalid Input", "Please enter a valid Meter ID.")
 
+def export_methods(self):
+    formats = ["Excel (.xlsx)", "Text - Tab separated (.txt)", "CSV (.csv)"]
+    format_choice, ok = QInputDialog.getItem(self, "Export Format", "Choose export format:", formats, 0, False)
+    if not ok:
+        return  # User canceled
+    
+    current_tab = self.tab_widget.currentWidget()
+    if current_tab == self.home_tab:
+        table = self.home_table
+    elif current_tab == self.advanced_tab:
+        table = self.advanced_table
+    else:
+        QMessageBox.warning(self, "Export Failed", "No exportable table in this tab.")
+        return
+
+
+    if format_choice == "Excel (.xlsx)":
+        export_selected_to_excel(self, table=table)
+    elif format_choice == "Text - Tab separated (.txt)":
+        export_selected_to_txt(self, table=table)
+    elif format_choice == "CSV (.csv)":
+        export_selected_to_csv(self, table=table)
 
 def setup_right_panel_for_Advanced(self):
         lang = self.current_language
@@ -70,10 +92,10 @@ def setup_right_panel_for_Advanced(self):
         self.btn_read_all.clicked.connect(self.read_all_meters)
         self.right_layout.addWidget(self.btn_read_all)
 
-        self.export_btn = QPushButton("Export to CSV")
+        self.export_btn = QPushButton("Export")
         self.export_btn.setText(translations[lang]["export_btn"])
         self.export_btn.setStyleSheet(btnStyle)
-        self.export_btn.clicked.connect(lambda: export_table_to_csv(self))
+        self.export_btn.clicked.connect(lambda: export_methods(self))
         self.right_layout.addWidget(self.export_btn)
 
         # self.usage_chart_btn = QPushButton("Show Usage Chart")

@@ -50,6 +50,7 @@ def save_reading(meterId, timestamp, value):
     conn.commit()
     conn.close()
 
+
 def save_meter(meter_id):
     conn = sqlite3.connect('meter_data.db')
     cur = conn.cursor()

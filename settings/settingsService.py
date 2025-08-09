@@ -35,7 +35,7 @@ translations = {
         "x_label": "Date",
         "y_label": "Total Usage (m³)",
         "usage_chart_btn": "Show Usage Chart",
-        "export_btn":"Export to CSV",
+        "export_btn":"Export",
         # Add more as needed
     },
     'tr': {
@@ -66,7 +66,7 @@ translations = {
         "x_label": "Tarih",
         "y_label": "Toplam Kullanım (m³)",
         "usage_chart_btn":"Kullanım Tablosunu Göster",
-        "export_btn":"CSV'ye aktar",
+        "export_btn":"aktar",
         # Add more as needed
     }
 }

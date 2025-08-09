@@ -35,7 +35,7 @@ class WaterMeterGUI(QMainWindow):
         super().__init__()
         self.current_language = 'en'
         self.setWindowTitle("Water Meter GUI")
-        self.resize(1800, 900)
+        self.resize(1800, 1000)
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -57,14 +57,12 @@ class WaterMeterGUI(QMainWindow):
         # Tabs
         self.home_tab = QWidget()
         self.advanced_tab = QWidget()
-        self.settings_tab = QWidget()
         self.graphical_visualization = QWidget()
 
         self.tab_widget.addTab(self.home_tab, "Home")
         self.tab_widget.addTab(self.advanced_tab, "Advanced")
         self.tab_widget.addTab(self.graphical_visualization, "Graphical Visualization")
-        self.tab_widget.addTab(self.settings_tab, "Settings")  # ✅ Added
-
+        
         # Setup each tab
         setup_home_tab(self)
         setup_right_panel_for_Home(self)
@@ -150,7 +148,7 @@ class WaterMeterGUI(QMainWindow):
 
     def sort_table(self):
         sort_by = self.sort_box.currentText()
-        column_index = {"Meter ID": 1, "Timestamp": 2, "Usage (m³)": 3}.get(sort_by, 1)  # ✅ Fixed
+        column_index = {"Meter ID": 1, "Timestamp": 2, "Usage (m³)": 3}.get(sort_by, 1)
         current_tab = self.tab_widget.currentWidget()
         if current_tab == self.home_tab:
             self.home_table.sortItems(column_index, Qt.AscendingOrder)
@@ -167,6 +165,7 @@ class WaterMeterGUI(QMainWindow):
             if timestamp and usage is not None:
                 save_meter(meter_id)
                 save_reading(meter_id, timestamp, usage)
+                # self.display_new_readings([data])
                 return (None, meter_id, timestamp, usage)
         return None
 
@@ -195,7 +194,6 @@ class WaterMeterGUI(QMainWindow):
                 table.setItem(row, 3, QTableWidgetItem(str(row_data[3])))
 
     def read_new_meter(self, meterId):
-        print(meterId)
         new_reading = self.read_and_save_meter(meterId)
         if new_reading:
             self.display_new_readings([new_reading])
@@ -211,7 +209,7 @@ class WaterMeterGUI(QMainWindow):
                 new_readings.append(new_reading)
 
         if new_readings:
-            self.display_new_readings(new_readings)
+            self.populate_table(new_readings, self.advanced_table)
         else:
             QMessageBox.warning(self, "Warning", "No new meter data was read.")
 
