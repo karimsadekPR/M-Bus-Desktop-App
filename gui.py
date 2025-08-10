@@ -1,4 +1,4 @@
-import sys, csv
+import sys
 from datetime import datetime
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -6,6 +6,9 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem, QMessageBox,
     QTabWidget
 )
+
+from PyQt5.QtGui import QIcon
+
 from PyQt5.QtCore import Qt
 from database import get_all_readings, save_reading, save_meter, get_all_meter_ids
 from mbus_reader import read_meter
@@ -35,6 +38,7 @@ class WaterMeterGUI(QMainWindow):
         super().__init__()
         self.current_language = 'en'
         self.setWindowTitle("Water Meter GUI")
+        self.setWindowIcon(QIcon('tools/icon/teksanIcon.ico'))
         self.resize(1800, 1000)
 
         self.central_widget = QWidget()
