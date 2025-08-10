@@ -3,7 +3,8 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTableWidget, QLabel, QHeaderView, QPushButton, QComboBox,
     QTableWidgetItem, QMessageBox, QDateEdit, QCheckBox, QLineEdit,
-    QTabWidget, QFileDialog, QSizePolicy, QAbstractButton
+    QTabWidget, QFileDialog, QSizePolicy, QAbstractButton, QRadioButton,
+    QGridLayout, QSpinBox
 )
 
 translations = {
@@ -72,26 +73,84 @@ translations = {
 }
 
 def setup_settings_tab(self):
-        settings_tab = QWidget()
-        layout = QVBoxLayout()
+    settings_tab = QWidget()
+    main_layout = QVBoxLayout()
 
-        # Language label
-        self.lang_label = QLabel("Language:")
-        self.lang_label.setObjectName("lang_label")
-        layout.addWidget(self.lang_label)
+    # --- Radio Buttons Group ---
+    mode_layout = QHBoxLayout()
+    self.rb_mbus = QRadioButton("MBus")
+    self.rb_rf = QRadioButton("RF")
+    self.rb_datalogger = QRadioButton("DataLogger")
+    self.rb_wmbus = QRadioButton("W-MBus")
+    self.rb_mbus.setChecked(True)
+    for rb in (self.rb_mbus, self.rb_rf, self.rb_datalogger, self.rb_wmbus):
+        mode_layout.addWidget(rb)
+    main_layout.addLayout(mode_layout)
 
-        # Language combo box
-        self.lang_combo = QComboBox()
-        self.lang_combo.addItems(['English', 'Türkçe'])
-        self.lang_combo.setCurrentIndex(0)
-        layout.addWidget(self.lang_combo)
+    # --- Settings Grid ---
+    grid = QGridLayout()
 
-        # Connect language change signal
-        self.lang_combo.currentTextChanged.connect(lambda: change_language(self, self.lang_combo.currentText()))
+    # Comm Port
+    grid.addWidget(QLabel("Comm Port"), 0, 0)
+    self.comm_port = QComboBox()
+    self.comm_port.addItems(["COM 01", "COM 02", "COM 03"])
+    grid.addWidget(self.comm_port, 0, 1)
 
-        # Set layout to the tab
-        settings_tab.setLayout(layout)
-        self.tab_widget.addTab(settings_tab, "Settings")
+    # Baudrate
+    grid.addWidget(QLabel("Baudrate"), 1, 0)
+    self.baudrate = QComboBox()
+    self.baudrate.addItems(["2400", "4800", "9600"])
+    grid.addWidget(self.baudrate, 1, 1)
+    grid.addWidget(QLabel("bps"), 1, 2)
+
+    # Parity
+    grid.addWidget(QLabel("Parity"), 2, 0)
+    self.parity = QComboBox()
+    self.parity.addItems(["Even", "Odd", "None"])
+    grid.addWidget(self.parity, 2, 1)
+
+    # Retry Counter
+    grid.addWidget(QLabel("Retry Counter"), 3, 0)
+    self.retry_counter = QSpinBox()
+    self.retry_counter.setRange(0, 10)
+    self.retry_counter.setValue(3)
+    grid.addWidget(self.retry_counter, 3, 1)
+
+    # Timeout
+    grid.addWidget(QLabel("Timeout"), 4, 0)
+    self.timeout = QSpinBox()
+    self.timeout.setRange(100, 10000)
+    self.timeout.setValue(3000)
+    grid.addWidget(self.timeout, 4, 1)
+    grid.addWidget(QLabel("msec"), 4, 2)
+
+    # Language
+    grid.addWidget(QLabel("Language"), 5, 0)
+    self.lang_combo = QComboBox()
+    self.lang_combo.addItems(["English", "Türkçe"])
+    self.lang_combo.setCurrentIndex(0)
+    grid.addWidget(self.lang_combo, 5, 1)
+
+    main_layout.addLayout(grid)
+
+    # --- Buttons ---
+    btn_layout = QHBoxLayout()
+    self.btn_cancel = QPushButton("Cancel")
+    self.btn_check = QPushButton("Check for")
+    self.btn_save = QPushButton("Save")
+    btn_layout.addWidget(self.btn_cancel)
+    btn_layout.addWidget(self.btn_check)
+    btn_layout.addWidget(self.btn_save)
+    main_layout.addLayout(btn_layout)
+
+    # --- Connect language change ---
+    self.lang_combo.currentTextChanged.connect(
+        lambda: change_language(self, self.lang_combo.currentText())
+    )
+
+    # Set layout to the tab
+    settings_tab.setLayout(main_layout)
+    self.tab_widget.addTab(settings_tab, "Settings")
 
 def translate_ui(self, lang):
         for widget in self.findChildren(QWidget):
