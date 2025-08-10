@@ -11,8 +11,7 @@ from PyQt5.QtGui import QIcon
 
 from PyQt5.QtCore import Qt
 from database import get_all_readings, save_reading, save_meter, get_all_meter_ids
-from mbus_reader import read_meter
-
+from M_Bus_Services.mbus_reader import read_meter
 from settings.settingsService import setup_settings_tab, translate_ui
 from home.homeService import setup_home_tab, setup_right_panel_for_Home
 from advanced.advancedService import setup_advanced_tab, setup_right_panel_for_Advanced

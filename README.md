@@ -40,7 +40,7 @@ UI Addition: Multi-select dropdown or checkboxes for meter IDs.
 
 Why: Useful for comparing consumption patterns across buildings/floors.
 
-11. Total and Average Usage Summary
+11. Total and Average Usage Summary 
 Description: Add a small info panel above the graph:
 
 Total water usage
@@ -51,7 +51,7 @@ Highest/lowest usage day
 
 Why: Gives at-a-glance insights for quick decision-making.
 
-12. Meter Health Status
+12. Meter Health Status 
 Description: Add a visual tag per meter:
 
 ✅ Active (has data in the last 24h)

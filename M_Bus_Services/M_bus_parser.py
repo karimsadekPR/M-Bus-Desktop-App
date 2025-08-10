@@ -1,5 +1,4 @@
-from read_telegram import read_all_telegrams_from_serial
-from database import set_row_telegram, init_db
+from database import set_row_telegram
 
 def parse_mbus_telegram(telegram_bytes):
     """Parse and return a dict or error"""
@@ -21,7 +20,6 @@ def parse_mbus_telegram(telegram_bytes):
     }
 
 def process_telegram(raw):
-    init_db()
 
     parsed = parse_mbus_telegram(raw)
     if "error" in parsed:
