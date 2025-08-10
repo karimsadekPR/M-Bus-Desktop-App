@@ -28,7 +28,7 @@ def setup_advanced_tab(self):
 def create_table() -> QTableWidget:
         table = QTableWidget()
         table.setColumnCount(4)
-        table.setHorizontalHeaderLabels(["Select", "Meter ID", "Timestamp", "Usage (m³)"])
+        table.setHorizontalHeaderLabels(["Select", "Meter ID", "Timestamp", "Value"])
         #############################################################################################
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         header = table.horizontalHeader()
@@ -89,7 +89,7 @@ def setup_right_panel_for_Advanced(self):
         self.btn_read_all = QPushButton("Read All Meters")
         self.btn_read_all.setText(translations[lang]["btn_read_all"])
         self.btn_read_all.setStyleSheet(btnStyle)
-        self.btn_read_all.clicked.connect(self.read_all_meters)
+        self.btn_read_all.clicked.connect(lambda: self.read_all_meters())
         self.right_layout.addWidget(self.btn_read_all)
 
         self.export_btn = QPushButton("Export")
@@ -110,19 +110,22 @@ def setup_right_panel_for_Advanced(self):
         self.btn_delete.clicked.connect(lambda: delete_selected_rows(self))
         self.right_layout.addWidget(self.btn_delete)
 
-        self.sort_box = QComboBox()
-        self.sort_box.clear()
-        self.sort_box.addItems(translations[lang]["sort_box"])
+        self.right_layout.addWidget(QLabel("Sort: "))
 
+        self.sort_box = QComboBox()
+        self.sort_box.addItems(translations[lang]["sort_box"])
         self.right_layout.addWidget(self.sort_box)
 
-        self.sort_button = QPushButton("Sort")
-        self.sort_button.setText(translations[lang]["sort_button"])
-        self.sort_button.clicked.connect(lambda: self.sort_table)
+        self.order_box = QComboBox()
+        self.order_box.addItems(["Ascending", "Descending"]) 
+        self.right_layout.addWidget(self.order_box)
+
+        self.sort_button = QPushButton(translations[lang]["sort_button"])
+        self.sort_button.clicked.connect(lambda: self.sort_table())
         self.right_layout.addWidget(self.sort_button)
 
         self.right_layout.addSpacing(10)
-        self.right_layout.addWidget(QLabel("Date From:"))
+        self.right_layout.addWidget(QLabel("Date Filter:"))
 
         date_layout = QHBoxLayout()
         self.date_from = QDateEdit(QDate.currentDate())
@@ -143,7 +146,6 @@ def setup_right_panel_for_Advanced(self):
         self.filter_box = QComboBox()
         self.filter_box.addItems(["Meter ID", "Timestamp", "Value"])
         self.right_layout.addWidget(self.filter_box)
-
 
         self.filter_input = QLineEdit()
         self.filter_input.setPlaceholderText("Enter filter value...") 

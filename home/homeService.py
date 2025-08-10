@@ -14,7 +14,7 @@ from tools.deleteReadings import delete_selected_rows
 def create_table() -> QTableWidget:
         table = QTableWidget()
         table.setColumnCount(4)
-        table.setHorizontalHeaderLabels(["Select", "Meter ID", "Timestamp", "Usage (m³)"])
+        table.setHorizontalHeaderLabels(["Select", "Meter ID", "Timestamp", "Value"])
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         header = table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)

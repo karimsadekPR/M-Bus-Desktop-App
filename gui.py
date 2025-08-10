@@ -75,7 +75,7 @@ class WaterMeterGUI(QMainWindow):
     def create_table(self) -> QTableWidget:
         table = QTableWidget()
         table.setColumnCount(4)
-        table.setHorizontalHeaderLabels(["Select", "Meter ID", "Timestamp", "Usage (m³)"])
+        table.setHorizontalHeaderLabels(["Select", "Meter ID", "Timestamp", "Value"])
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         header = table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
@@ -148,12 +148,18 @@ class WaterMeterGUI(QMainWindow):
 
     def sort_table(self):
         sort_by = self.sort_box.currentText()
-        column_index = {"Meter ID": 1, "Timestamp": 2, "Usage (m³)": 3}.get(sort_by, 1)
+        order_text = self.order_box.currentText()
+        print(sort_by, order_text)
+        
+        column_index = {"Meter ID": 1, "Timestamp": 2, "Value": 3}.get(sort_by, 1)
+        order = Qt.AscendingOrder if order_text == "Ascending" else Qt.DescendingOrder
+        
         current_tab = self.tab_widget.currentWidget()
         if current_tab == self.home_tab:
-            self.home_table.sortItems(column_index, Qt.AscendingOrder)
+            self.home_table.sortItems(column_index, order)
         elif current_tab == self.advanced_tab:
-            self.advanced_table.sortItems(column_index, Qt.AscendingOrder)
+            self.advanced_table.sortItems(column_index, order)
+
 
     def read_and_save_meter(self, meter_id: int) -> tuple:
         """Read meter data and return the newly saved reading."""
