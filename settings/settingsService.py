@@ -37,6 +37,9 @@ translations = {
         "y_label": "Total Usage (m³)",
         "usage_chart_btn": "Show Usage Chart",
         "export_btn":"Export",
+        "order_box":["Ascending","Descending"],
+        "filter_box":["Meter ID","Time Stamp","Value"],
+        "date_filter":"Date Filter:",
         # Add more as needed
     },
     'tr': {
@@ -68,6 +71,9 @@ translations = {
         "y_label": "Toplam Kullanım (m³)",
         "usage_chart_btn":"Kullanım Tablosunu Göster",
         "export_btn":"aktar",
+        "order_box":["Artan","Azalan"],
+        "filter_box":["Sayaç Kimliği","Zaman Damgası","Değer"],
+        "date_filter":"tarih_filtresi: "
         # Add more as needed
     }
 }
