@@ -69,7 +69,7 @@ Button label: Save Graph as Image
 
 Why: Useful for reports, printing, or sharing via email.
 
-14. Serial Port Configuration
+14. Serial Port Configuration (DONE)
 Allows users to select the correct COM port, baud rate, and enable auto-reconnect to maintain stable communication with the water meter.
 
 15. Data Refresh Interval

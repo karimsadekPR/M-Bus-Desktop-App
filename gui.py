@@ -17,21 +17,6 @@ from home.homeService import setup_home_tab, setup_right_panel_for_Home
 from advanced.advancedService import setup_advanced_tab, setup_right_panel_for_Advanced
 from Graphical_visualization.Graphical_visualizationService import  setup_right_panel_for_GV
 
-btnStyle = """
-QPushButton {
-    font-size: 16px;
-    padding: 10px;
-    margin: 5px;
-    border: 1px solid #555;
-    border-radius: 6px;
-    background-color: #e6e6e6;
-}
-QPushButton:hover {
-    background-color: #d4d4d4;
-    border: 1px solid #333;
-}
-"""
-
 class WaterMeterGUI(QMainWindow):
     def __init__(self):
         super().__init__()
