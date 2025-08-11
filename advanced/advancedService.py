@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem, QMessageBox, QDateEdit, QCheckBox, QLineEdit, QInputDialog
 )
 from PyQt5.QtCore import Qt, QDate
+from M_Bus_Services.mbusfunction import read_device_data
 from style.btnStyle import btnStyle
 from tools.exportCSV import export_selected_to_csv, export_selected_to_excel, export_selected_to_txt
 from tools.deleteReadings import delete_selected_rows
@@ -39,10 +40,18 @@ def create_table() -> QTableWidget:
         header.setSectionResizeMode(3, QHeaderView.Stretch)
         return table
 
+def str_to_byte_list(hex_str):
+    if len(hex_str) % 2 != 0:
+        hex_str = '0' + hex_str
+    # Convert each pair of characters to an integer (base 16)
+    return [int(hex_str[i:i+2], 16) for i in range(0, len(hex_str), 2)]
+
 def get_meter_id(self):
     meter_id, ok = QInputDialog.getText(self, "Enter Meter ID", "Meter ID:")
     if ok and meter_id.strip():
-        self.read_new_meter(meter_id)
+        # self.read_new_meter(meter_id)
+        byte_list = str_to_byte_list(meter_id)
+        read_device_data(serialId=byte_list)
         QMessageBox.information(self, "Meter ID Entered", f"You entered: {meter_id}")
     elif ok:  # User pressed OK but left it blank
         QMessageBox.warning(self, "Invalid Input", "Please enter a valid Meter ID.")

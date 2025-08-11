@@ -2,22 +2,13 @@ import serial
 import time
 
 controls = {
-    "SND_UD": 0x7B,
+    "SND_UD": 0x7b,
     "REQ_UD2": 0x40,
-    "ACK": 0xE5,
 }
-
-def build_short_frame(data=[]):
-    return bytes(data)
-
-def build_long_frame(serialId=[]):
-    # Example long frame, change as needed for your meter
-    return bytes([0x68, 0x0b, 0x0b, 0x68, 0x73, 0xfd,*serialId, 0xff, 0xff, 0xff, 0xff, 0x4f, 0x16])
 
 def parse_raw_response(raw_hex):
     # Convert hex string to bytes
     data = bytes.fromhex(raw_hex)
-    # print(data)
 
     result = {}
 
@@ -72,40 +63,68 @@ def parse_raw_response(raw_hex):
     return result
 
 
-def read_device_data(port="COM6", baudrate=2400):
+def build_short_frame(control, address):
+    checksum = control ^ address
+    return bytes([0x10, control, address, checksum, 0x16])
+
+def build_long_frame(SerialId):
+    control = 0x73
+    address = 0xFD
+
+    frame_start = [0x68, 0x0b, 0x0b, 0x68]
+
+    Cl = [0x52]
+
+    data_payload = Cl + SerialId + [0xFF, 0xFF, 0xFF, 0xFF]
+
+    checksum_data = [control, address] + data_payload
+    checksum = sum(checksum_data) & 0xFF
+
+    frame_end = [checksum, 0x16]
+
+    frame = frame_start + [control, address] + data_payload + frame_end
+    return bytes(frame)
+
+
+def read_device_data(serialId):
+    port="COM6"
+    baudrate=2400
     try:
         ser = serial.Serial(
-            port=port,
-            baudrate=baudrate,
+            port,
+            baudrate,
             bytesize=serial.EIGHTBITS,
             parity=serial.PARITY_EVEN,
             stopbits=serial.STOPBITS_ONE,
-            timeout=1
-        )
-
-        # Send short frame
-        ser.write(build_short_frame([0x10, controls["REQ_UD2"], 0xFF, 0x3F, 0x16]))
-        print("Sent short frame:", build_short_frame([0x10, controls["REQ_UD2"], 0xFF, 0x3F, 0x16]).hex())
+            timeout=1)
+        # this is a request to restart and make the mbus ready for my request
+        short_frame = build_short_frame(controls["REQ_UD2"], 0xFF)
+        ser.write(short_frame)
+        print("Sent short frame:", short_frame.hex())
         time.sleep(1)
 
-        # Send long frame
-        ser.write(build_long_frame(serialId=[0x52, 0x45, 0x20, 0x07, 0x25]))
-        print("Sent long frame:", build_long_frame().hex())
+        # this is the request for the data 
+        print(serialId)
+        long_frame = build_long_frame(SerialId=serialId)
+        ser.write(long_frame)
+        print("Sent long frame:", long_frame.hex())
         time.sleep(1)
+
         response = ser.read(256)
-        print(response.hex())
+        print("Received:", response.hex())
 
-        ser.write(build_short_frame([0x10, controls["SND_UD"], 0xfd, 0x78, 0x16]))
+
+        snd_ud_frame = build_short_frame(controls["SND_UD"], 0xFD)
+        ser.write(snd_ud_frame)
+        print("Sent SND_UD short frame:", snd_ud_frame.hex())
         time.sleep(1)
 
-        # Read response
-        response = ser.read(256)
-        if response:
-            print(f"Response ({len(response)} bytes): { response.hex()}")
+        response2 = ser.read(256)
+        if response2:
+            print(f"Response ({len(response2)} bytes): {response2.hex()}")
+            print(parse_raw_response(response2.hex()))
         else:
             print("No response from device.")
-
-        print(parse_raw_response(response.hex())) 
 
         ser.close()
 
@@ -113,4 +132,4 @@ def read_device_data(port="COM6", baudrate=2400):
         print(f"Error: {e}")
 
 if __name__ == "__main__":
-    read_device_data()
+    read_device_data(serialId='')
