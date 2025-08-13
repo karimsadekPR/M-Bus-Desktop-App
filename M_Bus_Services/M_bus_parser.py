@@ -1,82 +1,120 @@
-from database import set_row_telegram
+def parse_mbus_payload(frame=None):
+    if frame is None:
+        frame = {
+            'frame_type': 'long variable length',
+            'start1': '0x68',
+            'length1': 35,
+            'length2': 35,
+            'start2': '0x68',
+            'control': '0x8',
+            'address': '0x1',
+            'CI': '0x72',
+            'data_payload': '45200725735105219610000004134300000002fd17ffff02fd61000001fd1f01',
+            'checksum': '0x88',
+            'stop': '0x16',
+            'checksum_valid': True
+        }
+    payload_hex = frame["data_payload"]
+    payload = bytes.fromhex(payload_hex)
 
-def parse_mbus_telegram(telegram_bytes):
-    """Parse and return a dict or error"""
-    if len(telegram_bytes) < 9:
-        return {"error": "Telegram too short"}
-
-    start_byte = telegram_bytes[0]
-    length = telegram_bytes[1]
-    ci_field = telegram_bytes[6]
-    id_bytes = telegram_bytes[7:11]
-    meter_id = int.from_bytes(id_bytes, byteorder='little')
-
-    return {
-        "start_byte": f"{start_byte:#02x}",
-        "length": length,
-        "ci_field": f"{ci_field:#02x}",
-        "meter_id": meter_id,
-        "raw_hex": telegram_bytes.hex(" ")
+    result = {
+        "ID": None,
+        "Manufacturer": None,
+        "Address": frame["address"],
+        "Version": None,
+        "Date": None,
+        "Time": None,
+        "Meter Type": None,
+        "Data Records": []
     }
 
-def process_telegram(raw):
+    # --- Fixed header ---
+    # ID (4 bytes, little-endian)
+    meter_id = int.from_bytes(payload[0:4], byteorder="little")
+    result["ID"] = meter_id
 
-    parsed = parse_mbus_telegram(raw)
-    if "error" in parsed:
-        print(f"Parse error: {parsed['error']}")
-        return
+    # Manufacturer code (2 bytes, little-endian)
+    manuf_code = int.from_bytes(payload[4:6], byteorder="little")
 
-    #print(f"Parsed meter_id={parsed['meter_id']}")
-    set_row_telegram(
-        raw_hex=parsed["raw_hex"],
-        meter_id=parsed["meter_id"],
-        length=parsed["length"],
-        ci_field=parsed["ci_field"]
-    )
-    print("Processed 1 telegram successfully.")
+    def decode_manufacturer(code):
+        c1 = chr(((code >> 10) & 0x1F) + 64)
+        c2 = chr(((code >> 5) & 0x1F) + 64)
+        c3 = chr((code & 0x1F) + 64)
+        return f"{c1}{c2}{c3}"
 
-    PayloadData = readPayload(length=parsed["length"], raw_hex_str=parsed["raw_hex"])
+    result["Manufacturer"] = decode_manufacturer(manuf_code)
 
-    return PayloadData
+    # Version (1 byte)
+    result["Version"] = payload[6]
 
-def readPayload(length, raw_hex_str):
+    # Meter Type (1 byte)
+    medium_code = payload[7]
+    medium_map = {
+        0x03: "Electricity",
+        0x04: "Heat",
+        0x06: "Gas",
+        0x07: "Water",
+        0x21: "Heat (TKS specific)"
+    }
+    result["Meter Type"] = medium_map.get(medium_code, f"Unknown ({medium_code})")
 
-    raw_hex_str = raw_hex_str.replace(" ", "")  # Remove spaces
-    raw_bytes = bytes.fromhex(raw_hex_str)
+    # --- Data records ---
+    idx = 12  # start of data records after fixed header (4 + 2 + 1 + 1 + 4 reserved/status bytes)
+    while idx < len(payload):
+        DIF = payload[idx]
+        idx += 1
+        data_len = DIF & 0x0F  # last 4 bits = data length in bytes
 
-    payload_end = 4 + length
+        VIF = payload[idx]
+        idx += 1
 
-    payload = raw_bytes[4:payload_end]
-    print("Payload bytes:", payload.hex())
+        description = None
+        unit = None
 
-    index = 0
-    data_records = []
+        if VIF == 0x13:
+            description = "Volume"
+            unit = "m³"
+        elif VIF == 0xFD:  # manufacturer-specific
+            if idx >= len(payload):
+                # Defensive: no VIFE byte available
+                description = "Manufacturer-specific (missing VIFE)"
+                unit = "-"
+            else:
+                VIFE = payload[idx]
+                idx += 1
+                if VIFE == 0x17:
+                    description = "Error Flags"
+                    unit = "Binary"
+                elif VIFE == 0x61:
+                    description = "Cumulation Counter"
+                    unit = "-"
+                elif VIFE == 0x1F:
+                    description = "Reserved"
+                    unit = "-"
+                else:
+                    description = f"Manufacturer-specific (VIFE={VIFE:02X})"
+        else:
+            description = f"Unknown VIF {VIF:02X}"
 
-    while index < len(payload):
-        dif = payload[index]
-        index += 1
+        # Extract value bytes and convert to int
+        value_bytes = payload[idx:idx + data_len]
+        idx += data_len
+        value = int.from_bytes(value_bytes, byteorder="little")
 
-        # Extract data length from lower 4 bits of DIF
-        data_length = dif & 0x0F
-
-        vif = payload[index]
-        index += 1
-
-        data = list(payload[index:index+data_length])
-        index += data_length
-
-        data_records.append({
-            'DIF': dif,
-            'VIF': vif,
-            'DATA': data
+        result["Data Records"].append({
+            "Value": value,
+            "Unit": unit,
+            "Description": description
         })
 
-    return data_records
+    return result
 
-def main():
-    hex_string = "6823236808017245200725735105212010000004132300000002fd17ffff02fd61000001fd1f01f216"
-    frame = bytes.fromhex(hex_string)
-    print(process_telegram(frame))
+
+def __main__():
+    parsed = parse_mbus_payload()
+    import pprint
+    pprint.pprint(parsed)
+
 
 if __name__ == "__main__":
-    main()
+    __main__()

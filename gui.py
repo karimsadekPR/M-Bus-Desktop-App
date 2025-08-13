@@ -60,19 +60,7 @@ class WaterMeterGUI(QMainWindow):
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
         self.tab_widget.setCurrentIndex(0)  
 
-    def create_table(self) -> QTableWidget:
-        table = QTableWidget()
-        table.setColumnCount(4)
-        table.setHorizontalHeaderLabels(["Select", "Meter ID", "Timestamp", "Value"])
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        header = table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.Fixed)
-        table.setColumnWidth(1, 100)
-        header.setSectionResizeMode(2, QHeaderView.Stretch)
-        header.setSectionResizeMode(3, QHeaderView.Stretch)
-        return table
-
+    
     def clear_layout(self, layout):
         if layout is not None:
             while layout.count():
@@ -108,13 +96,20 @@ class WaterMeterGUI(QMainWindow):
         for row_data in readings:
             row = table.rowCount()
             table.insertRow(row)
+            
             checkbox_item = QTableWidgetItem()
             checkbox_item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
             checkbox_item.setCheckState(Qt.Unchecked)
             table.setItem(row, 0, checkbox_item)
-            table.setItem(row, 1, QTableWidgetItem(str(row_data[1])))
-            table.setItem(row, 2, QTableWidgetItem(str(row_data[2])))
-            table.setItem(row, 3, QTableWidgetItem(str(row_data[3])))
+            
+            for col_idx in range(12):
+                if col_idx < len(row_data):
+                    value = row_data[col_idx]
+                else:
+                    value = ""
+                item = QTableWidgetItem(str(value) if value is not None else "")
+                table.setItem(row, col_idx + 1, item)
+
 
     def update_table(self):
         readings = get_all_readings()
