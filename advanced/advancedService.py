@@ -78,6 +78,8 @@ def get_meter_id(self):
                 )
             
         QMessageBox.information(self, "Meter ID Entered", f"You entered: {meter_id}")
+        print(readings)
+        self.display_new_readings([readings], Date, Time)
     elif ok:  # User pressed OK but left it blank
         QMessageBox.warning(self, "Invalid Input", "Please enter a valid Meter ID.")
 
@@ -118,6 +120,7 @@ def setup_right_panel_for_Advanced(self):
         self.btn_read.setText(translations[lang]["btn_read"])
         self.btn_read.setStyleSheet(btnStyle)
         self.btn_read.clicked.connect(lambda: get_meter_id(self))
+        
         self.right_layout.addWidget(self.btn_read)
 
         self.btn_read_all = QPushButton("Read All Meters")

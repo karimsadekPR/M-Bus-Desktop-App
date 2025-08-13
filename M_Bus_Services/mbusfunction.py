@@ -104,7 +104,7 @@ def read_device_data(serialId):
         time.sleep(1)
 
         # this is the request for the data 
-        print(serialId)
+        print(type(serialId))
         long_frame = build_long_frame(SerialId=serialId)
         ser.write(long_frame)
         print("Sent long frame:", long_frame.hex())

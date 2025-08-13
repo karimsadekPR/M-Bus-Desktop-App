@@ -6,7 +6,7 @@ def init_db():
     conn.execute('''
     CREATE TABLE IF NOT EXISTS readings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    meterId INTEGER,
+    meterId TEXT,
     manufacturer TEXT,
     address TEXT,
     version INTEGER,
@@ -23,7 +23,7 @@ def init_db():
     conn.execute('''
         CREATE TABLE IF NOT EXISTS meters (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            meterId INTEGER UNIQUE,
+            meterId TEXT UNIQUE,
             manufacturer TEXT,
             address TEXT,
             version INTEGER,
@@ -111,7 +111,7 @@ def get_all_readings_id(meterId):
             SELECT meterId, manufacturer, address, version, date, time, meter_type,
                    date_no, value, unit, description, timestamp
             FROM readings
-            WHERE meterId = ? ORDER BY meterId DESC
+            WHERE meterId = ?
             ''', (meterId,))
         rows = cur.fetchall()
         return rows

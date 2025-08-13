@@ -28,12 +28,9 @@ def parse_mbus_payload(frame=None):
         "Data Records": []
     }
 
-    # --- Fixed header ---
-    # ID (4 bytes, little-endian)
-    meter_id = int.from_bytes(payload[0:4], byteorder="little")
-    result["ID"] = meter_id
+    meter_id = payload[0:4]  
+    result["ID"] = meter_id.hex()  
 
-    # Manufacturer code (2 bytes, little-endian)
     manuf_code = int.from_bytes(payload[4:6], byteorder="little")
 
     def decode_manufacturer(code):
@@ -58,12 +55,12 @@ def parse_mbus_payload(frame=None):
     }
     result["Meter Type"] = medium_map.get(medium_code, f"Unknown ({medium_code})")
 
-    # --- Data records ---
-    idx = 12  # start of data records after fixed header (4 + 2 + 1 + 1 + 4 reserved/status bytes)
+    
+    idx = 12  
     while idx < len(payload):
         DIF = payload[idx]
         idx += 1
-        data_len = DIF & 0x0F  # last 4 bits = data length in bytes
+        data_len = DIF & 0x0F 
 
         VIF = payload[idx]
         idx += 1
@@ -74,9 +71,8 @@ def parse_mbus_payload(frame=None):
         if VIF == 0x13:
             description = "Volume"
             unit = "m³"
-        elif VIF == 0xFD:  # manufacturer-specific
+        elif VIF == 0xFD: 
             if idx >= len(payload):
-                # Defensive: no VIFE byte available
                 description = "Manufacturer-specific (missing VIFE)"
                 unit = "-"
             else:
@@ -96,7 +92,6 @@ def parse_mbus_payload(frame=None):
         else:
             description = f"Unknown VIF {VIF:02X}"
 
-        # Extract value bytes and convert to int
         value_bytes = payload[idx:idx + data_len]
         idx += data_len
         value = int.from_bytes(value_bytes, byteorder="little")
