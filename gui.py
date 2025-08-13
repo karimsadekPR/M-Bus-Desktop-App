@@ -47,14 +47,15 @@ class WaterMeterGUI(QMainWindow):
         self.advanced_tab = QWidget()
         self.graphical_visualization = QWidget()
 
-        self.tab_widget.addTab(self.home_tab, "Home")
+        # self.tab_widget.addTab(self.home_tab, "Home")
         self.tab_widget.addTab(self.advanced_tab, "Advanced")
         self.tab_widget.addTab(self.graphical_visualization, "Graphical Visualization")
         
         # Setup each tab
-        setup_home_tab(self)
-        setup_right_panel_for_Home(self)
+        # setup_home_tab(self)
+        # setup_right_panel_for_Home(self)
         setup_advanced_tab(self)
+        setup_right_panel_for_Advanced(self)
         setup_settings_tab(self)
 
         self.tab_widget.currentChanged.connect(self.on_tab_changed)

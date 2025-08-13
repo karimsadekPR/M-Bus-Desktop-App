@@ -21,13 +21,13 @@ def init_db():
         );
     ''')
     conn.execute('''
-    CREATE TABLE IF NOT EXISTS meters (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    meterId INTEGER UNIQUE,
-    manufacturer TEXT,
-    address TEXT,
-    version INTEGER,
-    meter_type TEXT
+        CREATE TABLE IF NOT EXISTS meters (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            meterId INTEGER UNIQUE,
+            manufacturer TEXT,
+            address TEXT,
+            version INTEGER,
+            meter_type TEXT
         );
     ''')
     conn.execute('''
@@ -58,7 +58,6 @@ def save_reading(meterId, manufacturer, address, version, date, time,
                  meter_type, date_no, value, unit, description, timestamp=None):
     conn = sqlite3.connect('meter_data.db')
     if timestamp is None:
-        # Let the DB use default CURRENT_TIMESTAMP
         conn.execute('''
             INSERT INTO readings (meterId, manufacturer, address, version, date, time,
                                   meter_type, date_no, value, unit, description)
@@ -81,19 +80,25 @@ def save_meter(meter_id, manufacturer=None, address=None, version=None, meter_ty
     cur = conn.cursor()
     cur.execute('SELECT id FROM meters WHERE meterId = ?', (meter_id,))
     existing = cur.fetchone()
+
     if existing is None:
         cur.execute('''
             INSERT INTO meters (meterId, manufacturer, address, version, meter_type)
             VALUES (?, ?, ?, ?, ?)
         ''', (meter_id, manufacturer, address, version, meter_type))
         conn.commit()
+
     conn.close()
 
 
 def get_all_readings():
     conn = sqlite3.connect('meter_data.db')
     cur = conn.cursor()
-    cur.execute('SELECT * FROM readings ORDER BY water_usage DESC')
+    cur.execute('''
+                SELECT meterId, manufacturer, address, version, date, time, meter_type,
+                date_no, value, unit, description, timestamp
+                FROM readings
+                ''')
     rows = cur.fetchall()
     conn.close()
     return rows
@@ -106,7 +111,7 @@ def get_all_readings_id(meterId):
             SELECT meterId, manufacturer, address, version, date, time, meter_type,
                    date_no, value, unit, description, timestamp
             FROM readings
-            WHERE meterId = ? ORDER BY water_usage DESC
+            WHERE meterId = ? ORDER BY meterId DESC
             ''', (meterId,))
         rows = cur.fetchall()
         return rows
@@ -133,7 +138,6 @@ def get_filter_date(StartDate, EndDate):
     cur.execute('''
                 SELECT * FROM readings
                 WHERE timestamp BETWEEN ? AND ?
-                ORDER BY water_usage DESC
                 ''', (StartDate, EndDate))
     rows = cur.fetchall()
     conn.close()
@@ -142,7 +146,7 @@ def get_filter_date(StartDate, EndDate):
 def delete_meter(meter_id, meter_value, meter_time):
     conn = sqlite3.connect('meter_data.db')
     cur = conn.cursor()
-    cur.execute('DELETE FROM readings WHERE meterId = ? AND timestamp = ? AND water_usage = ?', (meter_id, meter_time, meter_value))
+    cur.execute('DELETE FROM readings WHERE meterId = ?', (meter_id))
     conn.commit()
     conn.close()
 

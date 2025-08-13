@@ -1,4 +1,5 @@
 
+from datetime import datetime
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTableWidget, QLabel, QHeaderView, QPushButton, QComboBox,
@@ -7,6 +8,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, QDate
 from M_Bus_Services.M_bus_parser import parse_mbus_payload
 from M_Bus_Services.mbusfunction import read_device_data
+from database import save_meter, save_reading
 from style.btnStyle import btnStyle
 from tools.exportCSV import export_selected_to_csv, export_selected_to_excel, export_selected_to_txt
 from tools.deleteReadings import delete_selected_rows
@@ -55,8 +57,26 @@ def get_meter_id(self):
     if ok and meter_id.strip():
 
         byte_list = str_to_byte_list(meter_id)
-        print(parse_mbus_payload(read_device_data(serialId=byte_list))) 
-
+        readings = parse_mbus_payload(read_device_data(serialId=byte_list))
+        print(readings)
+        Date = datetime.now().strftime("%Y-%m-%d")
+        Time = datetime.now().strftime("%H:%M:%S")
+        save_meter(meter_id= readings['ID'],manufacturer= readings['Manufacturer'],address= readings['Address'],version= readings['Version'],meter_type= readings['Meter Type'])
+        for reading in readings['Data Records']:
+            save_reading(
+                meterId= readings["ID"],
+                manufacturer= readings["Manufacturer"],
+                address= readings["Address"],
+                version= readings["Version"],
+                date= Date,
+                time= Time,
+                meter_type= readings["Meter Type"],
+                value=reading['Value'],
+                unit=reading['Unit'],
+                description=reading['Description'],
+                date_no=None
+                )
+            
         QMessageBox.information(self, "Meter ID Entered", f"You entered: {meter_id}")
     elif ok:  # User pressed OK but left it blank
         QMessageBox.warning(self, "Invalid Input", "Please enter a valid Meter ID.")
