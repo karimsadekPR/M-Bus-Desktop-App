@@ -90,7 +90,9 @@ def setup_settings_tab(self):
     # Comm Port
     grid.addWidget(QLabel("Comm Port"), 0, 0)
     self.comm_port = QComboBox()
-    self.comm_port.addItems(["COM 01", "COM 02", "COM 03"])
+    for port in range(1, 31):
+        self.comm_port.addItems([f'COM{port}'])
+        
     grid.addWidget(self.comm_port, 0, 1)
 
     # Baudrate
