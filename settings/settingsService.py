@@ -6,6 +6,8 @@ from PyQt5.QtWidgets import (
     QTabWidget, QFileDialog, QSizePolicy, QAbstractButton, QRadioButton,
     QGridLayout, QSpinBox
 )
+import json
+
 
 translations = {
     'en': {
@@ -82,17 +84,6 @@ def setup_settings_tab(self):
     settings_tab = QWidget()
     main_layout = QVBoxLayout()
 
-    # --- Radio Buttons Group ---
-    mode_layout = QHBoxLayout()
-    self.rb_mbus = QRadioButton("MBus")
-    self.rb_rf = QRadioButton("RF")
-    self.rb_datalogger = QRadioButton("DataLogger")
-    self.rb_wmbus = QRadioButton("W-MBus")
-    self.rb_mbus.setChecked(True)
-    for rb in (self.rb_mbus, self.rb_rf, self.rb_datalogger, self.rb_wmbus):
-        mode_layout.addWidget(rb)
-    main_layout.addLayout(mode_layout)
-
     # --- Settings Grid ---
     grid = QGridLayout()
 
@@ -141,11 +132,11 @@ def setup_settings_tab(self):
 
     # --- Buttons ---
     btn_layout = QHBoxLayout()
-    self.btn_cancel = QPushButton("Cancel")
-    self.btn_check = QPushButton("Check for")
+    self.btn_apply = QPushButton("Apply")
     self.btn_save = QPushButton("Save")
-    btn_layout.addWidget(self.btn_cancel)
-    btn_layout.addWidget(self.btn_check)
+    self.btn_apply.clicked.connect(lambda:applySettings(self))
+    self.btn_save.clicked.connect(lambda:saveSettings(self))
+    btn_layout.addWidget(self.btn_apply)
     btn_layout.addWidget(self.btn_save)
     main_layout.addLayout(btn_layout)
 
@@ -157,6 +148,37 @@ def setup_settings_tab(self):
     # Set layout to the tab
     settings_tab.setLayout(main_layout)
     self.tab_widget.addTab(settings_tab, "Settings")
+
+import json
+
+def applySettings(self):
+    # Get values from widgets
+    settings = { "comm_port":self.comm_port.currentText(),
+    "baudrate" : self.baudrate.currentText(),
+    "parity" : self.parity.currentText(),
+    "retry_counter_value" : self.retry_counter.value(),
+    "timeout_value" : self.timeout.value(),
+    "lang" : self.lang_combo.currentText()}
+
+    change_language(self, settings["lang"])
+
+    return settings
+    
+def saveSettings(self):
+    # Make sure settings are up-to-date before saving
+    settings = applySettings(self)
+    # Save settings to file
+    with open("settings.json", "w") as f:
+        json.dump({
+            "comm_port": settings["comm_port"],
+            "baudrate": settings["baudrate"],
+            "parity": settings["parity"],
+            "retry_counter": settings["retry_counter_value"],
+            "timeout": settings["timeout_value"],
+            "lang": settings["lang"]
+
+        }, f, indent=4)
+    print(settings)
 
 def translate_ui(self, lang):
         for widget in self.findChildren(QWidget):
