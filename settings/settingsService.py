@@ -76,7 +76,6 @@ translations = {
         "order_box":["Artan","Azalan"],
         "filter_box":["Sayaç Kimliği","Zaman Damgası","Değer"],
         "date_filter":"tarih_filtresi: "
-        # Add more as needed
     }
 }
 
@@ -92,7 +91,7 @@ def setup_settings_tab(self):
     self.comm_port = QComboBox()
     for port in range(1, 31):
         self.comm_port.addItems([f'COM{port}'])
-        
+
     grid.addWidget(self.comm_port, 0, 1)
 
     # Baudrate
@@ -141,12 +140,7 @@ def setup_settings_tab(self):
     btn_layout.addWidget(self.btn_apply)
     btn_layout.addWidget(self.btn_save)
     main_layout.addLayout(btn_layout)
-
-    # --- Connect language change ---
-    self.lang_combo.currentTextChanged.connect(
-        lambda: change_language(self, self.lang_combo.currentText())
-    )
-
+    
     # Set layout to the tab
     settings_tab.setLayout(main_layout)
     self.tab_widget.addTab(settings_tab, "Settings")
@@ -160,7 +154,7 @@ def applySettings(self):
     "parity" : self.parity.currentText(),
     "retry_counter_value" : self.retry_counter.value(),
     "timeout_value" : self.timeout.value(),
-    "lang" : self.lang_combo.currentText()}
+    "lang" : "tr" if self.lang_combo.currentText() == "Türkçe" else "en" }
 
     change_language(self, settings["lang"])
 
