@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QTabWidget, QFileDialog, QSizePolicy, QAbstractButton, QListWidget, QListWidgetItem
 )
 from PyQt5.QtCore import Qt
-from database import get_last_7_days, get_all_readings_id, get_Readings_ById
+from database import get_all_readings_id
 from settings.settingsService import translations
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -158,7 +158,7 @@ def setup_graphical_visualization_tab(self):
 
 
 def get_meter_status(meter_id): #will probably be deleted soon
-    readings = get_Readings_ById(meter_id)
+    readings = get_all_readings_id(meter_id)
     if not readings:
         return "Inactive"
 
