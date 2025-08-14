@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QTabWidget, QFileDialog, QSizePolicy, QAbstractButton, QListWidget, QListWidgetItem
 )
 from PyQt5.QtCore import Qt
-from database import get_last_7_days, get_all_readings_id, get_Readings_ById
+from database import get_all_readings_id
 from settings.settingsService import translations
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
