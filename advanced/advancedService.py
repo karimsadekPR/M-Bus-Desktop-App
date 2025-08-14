@@ -1,10 +1,14 @@
 
+from datetime import datetime
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTableWidget, QLabel, QHeaderView, QPushButton, QComboBox,
     QTableWidgetItem, QMessageBox, QDateEdit, QCheckBox, QLineEdit, QInputDialog
 )
 from PyQt5.QtCore import Qt, QDate
+from M_Bus_Services.M_bus_parser import parse_mbus_payload
+from M_Bus_Services.mbusfunction import read_device_data
+from database import save_meter, save_reading
 from style.btnStyle import btnStyle
 from tools.exportCSV import export_selected_to_csv, export_selected_to_excel, export_selected_to_txt
 from tools.deleteReadings import delete_selected_rows
@@ -25,25 +29,57 @@ def setup_advanced_tab(self):
         layout.addWidget(self.advanced_table)
 
 
-def create_table() -> QTableWidget:
-        table = QTableWidget()
-        table.setColumnCount(4)
-        table.setHorizontalHeaderLabels(["Select", "Meter ID", "Timestamp", "Value"])
-        #############################################################################################
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        header = table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.Fixed)
-        table.setColumnWidth(1, 100)
-        header.setSectionResizeMode(2, QHeaderView.Stretch)
-        header.setSectionResizeMode(3, QHeaderView.Stretch)
-        return table
+def create_table():
+    table = QTableWidget()
+    table.setColumnCount(12)
+    table.setHorizontalHeaderLabels([
+        "Select","Meter ID", "Manufacturer", "Address", "Version", "Date", "Time",
+        "Meter Type", "Date No", "Value", "Unit", "Description", "Timestamp"
+    ])
+    
+    header = table.horizontalHeader()
+    header.setSectionResizeMode(QHeaderView.Stretch)
+    
+    # Example: Fix width of "Meter ID" column
+    header.setSectionResizeMode(0, QHeaderView.Fixed)
+    table.setColumnWidth(0, 100)
+    
+    return table
+
+def str_to_byte_list(hex_str):
+    if len(hex_str) % 2 != 0:
+        hex_str = '0' + hex_str
+    # Convert each pair of characters to an integer (base 16)
+    return [int(hex_str[i:i+2], 16) for i in range(0, len(hex_str), 2)]
 
 def get_meter_id(self):
     meter_id, ok = QInputDialog.getText(self, "Enter Meter ID", "Meter ID:")
     if ok and meter_id.strip():
-        self.read_new_meter(meter_id)
+
+        byte_list = str_to_byte_list(meter_id)
+        readings = parse_mbus_payload(read_device_data(serialId=byte_list))
+        print(readings)
+        Date = datetime.now().strftime("%Y-%m-%d")
+        Time = datetime.now().strftime("%H:%M:%S")
+        save_meter(meter_id= readings['ID'],manufacturer= readings['Manufacturer'],address= readings['Address'],version= readings['Version'],meter_type= readings['Meter Type'])
+        for reading in readings['Data Records']:
+            save_reading(
+                meterId= readings["ID"],
+                manufacturer= readings["Manufacturer"],
+                address= readings["Address"],
+                version= readings["Version"],
+                date= Date,
+                time= Time,
+                meter_type= readings["Meter Type"],
+                value=reading['Value'],
+                unit=reading['Unit'],
+                description=reading['Description'],
+                date_no=None
+                )
+            
         QMessageBox.information(self, "Meter ID Entered", f"You entered: {meter_id}")
+        print(readings)
+        self.display_new_readings([readings], Date, Time)
     elif ok:  # User pressed OK but left it blank
         QMessageBox.warning(self, "Invalid Input", "Please enter a valid Meter ID.")
 
@@ -84,6 +120,7 @@ def setup_right_panel_for_Advanced(self):
         self.btn_read.setText(translations[lang]["btn_read"])
         self.btn_read.setStyleSheet(btnStyle)
         self.btn_read.clicked.connect(lambda: get_meter_id(self))
+        
         self.right_layout.addWidget(self.btn_read)
 
         self.btn_read_all = QPushButton("Read All Meters")

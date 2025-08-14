@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QTabWidget, QFileDialog, QSizePolicy, QAbstractButton, QListWidget, QListWidgetItem
 )
 from PyQt5.QtCore import Qt
-from database import get_last_7_days, get_Readings_ById
+from database import get_last_7_days, get_all_readings_id, get_Readings_ById
 from settings.settingsService import translations
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -29,7 +29,7 @@ def create_graphical_chart(self, meter_ids, date_limit=None):
     colors = ['#007acc', '#28a745', '#dc3545', '#fd7e14', '#6f42c1', '#20c997', '#6610f2', '#17a2b8']
 
     for idx, meter_id in enumerate(meter_ids):
-        readings = get_Readings_ById(meter_id)
+        readings = get_all_readings_id(meter_id)
         if date_limit:
             readings = readings[-date_limit:]
 

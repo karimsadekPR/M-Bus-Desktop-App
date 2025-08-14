@@ -4,18 +4,31 @@ import datetime
 def init_db():
     conn = sqlite3.connect('meter_data.db')
     conn.execute('''
-        CREATE TABLE IF NOT EXISTS readings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            meterId INTEGER,
-            timestamp TEXT,
-            water_usage REAL
-        )
+    CREATE TABLE IF NOT EXISTS readings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    meterId TEXT,
+    manufacturer TEXT,
+    address TEXT,
+    version INTEGER,
+    date TEXT,
+    time TEXT,
+    meter_type TEXT,
+    date_no INTEGER,
+    value REAL,
+    unit TEXT,
+    description TEXT,
+    timestamp TEXT DEFAULT CURRENT_TIMESTAMP
+        );
     ''')
     conn.execute('''
         CREATE TABLE IF NOT EXISTS meters (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            meterId INTEGER
-        )
+            meterId TEXT UNIQUE,
+            manufacturer TEXT,
+            address TEXT,
+            version INTEGER,
+            meter_type TEXT
+        );
     ''')
     conn.execute('''
         CREATE TABLE IF NOT EXISTS telegrams (
@@ -41,58 +54,75 @@ def set_row_telegram(raw_hex, meter_id, length, ci_field):
         conn.commit()
     conn.close()
 
-def save_reading(meterId, timestamp, value):
+def save_reading(meterId, manufacturer, address, version, date, time,
+                 meter_type, date_no, value, unit, description, timestamp=None):
     conn = sqlite3.connect('meter_data.db')
-    conn.execute('''
-        INSERT INTO readings (meterId, timestamp, water_usage)
-        VALUES (?, ?, ?)
-    ''', (meterId, timestamp, value))
+    if timestamp is None:
+        conn.execute('''
+            INSERT INTO readings (meterId, manufacturer, address, version, date, time,
+                                  meter_type, date_no, value, unit, description)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (meterId, manufacturer, address, version, date, time,
+              meter_type, date_no, value, unit, description))
+    else:
+        conn.execute('''
+            INSERT INTO readings (meterId, manufacturer, address, version, date, time,
+                                  meter_type, date_no, value, unit, description, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (meterId, manufacturer, address, version, date, time,
+              meter_type, date_no, value, unit, description, timestamp))
     conn.commit()
     conn.close()
 
 
-def save_meter(meter_id):
+def save_meter(meter_id, manufacturer=None, address=None, version=None, meter_type=None):
     conn = sqlite3.connect('meter_data.db')
     cur = conn.cursor()
     cur.execute('SELECT id FROM meters WHERE meterId = ?', (meter_id,))
     existing = cur.fetchone()
+
     if existing is None:
         cur.execute('''
-            INSERT INTO meters (meterId)
-            VALUES (?)
-        ''', (meter_id,))
+            INSERT INTO meters (meterId, manufacturer, address, version, meter_type)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (meter_id, manufacturer, address, version, meter_type))
         conn.commit()
+
     conn.close()
+
 
 def get_all_readings():
     conn = sqlite3.connect('meter_data.db')
     cur = conn.cursor()
-    cur.execute('SELECT * FROM readings ORDER BY water_usage DESC')
+    cur.execute('''
+                SELECT meterId, manufacturer, address, version, date, time, meter_type,
+                date_no, value, unit, description, timestamp
+                FROM readings
+                ''')
     rows = cur.fetchall()
     conn.close()
     return rows
 
     
-def get_Readings_ById(meterId):
+def get_all_readings_id(meterId):
     with sqlite3.connect('meter_data.db') as conn:
         cur = conn.cursor()
-
-        if meterId == "All":
-            cur.execute('''
-            SELECT DATE(timestamp) as day, SUM(water_usage) as total_usage
-            FROM readings
-            GROUP BY DATE(timestamp)
-            ORDER BY day ASC''')
-        else:
-            cur.execute('''
-            SELECT DATE(timestamp) as day, SUM(water_usage) as total_usage
+        cur.execute('''
+            SELECT meterId, manufacturer, address, version, date, time, meter_type,
+                   date_no, value, unit, description, timestamp
             FROM readings
             WHERE meterId = ?
-            GROUP BY DATE(timestamp)
-            ORDER BY day ASC''', (meterId,))
-
+            ''', (meterId,))
         rows = cur.fetchall()
         return rows
+
+def get_all_meters():
+    conn = sqlite3.connect('meter_data.db')
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM meters')
+    rows = cur.fetchall()
+    conn.close()
+    return rows
 
 def get_meter_ById(meterId):
     conn = sqlite3.connect('meter_data.db')
@@ -108,7 +138,6 @@ def get_filter_date(StartDate, EndDate):
     cur.execute('''
                 SELECT * FROM readings
                 WHERE timestamp BETWEEN ? AND ?
-                ORDER BY water_usage DESC
                 ''', (StartDate, EndDate))
     rows = cur.fetchall()
     conn.close()
@@ -117,7 +146,7 @@ def get_filter_date(StartDate, EndDate):
 def delete_meter(meter_id, meter_value, meter_time):
     conn = sqlite3.connect('meter_data.db')
     cur = conn.cursor()
-    cur.execute('DELETE FROM readings WHERE meterId = ? AND timestamp = ? AND water_usage = ?', (meter_id, meter_time, meter_value))
+    cur.execute('DELETE FROM readings WHERE meterId = ?', (meter_id))
     conn.commit()
     conn.close()
 

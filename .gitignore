@@ -71,7 +71,3 @@ meter_data.db
 *.txt
 !README.md
 !requirements.txt
-
-*.pyc
-meter_data.db
-

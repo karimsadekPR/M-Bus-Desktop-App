@@ -10,28 +10,14 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QIcon
 
 from PyQt5.QtCore import Qt
-from database import get_all_readings, save_reading, save_meter, get_all_meter_ids
-from mbus_reader import read_meter
-
+from M_Bus_Services.M_bus_parser import parse_mbus_payload
+from M_Bus_Services.mbusfunction import read_device_data
+from database import get_all_readings, get_all_readings_id, save_reading, save_meter, get_all_meter_ids
+from M_Bus_Services.mbus_reader import read_meter
 from settings.settingsService import setup_settings_tab, translate_ui
 from home.homeService import setup_home_tab, setup_right_panel_for_Home
-from advanced.advancedService import setup_advanced_tab, setup_right_panel_for_Advanced
+from advanced.advancedService import setup_advanced_tab, setup_right_panel_for_Advanced, str_to_byte_list
 from Graphical_visualization.Graphical_visualizationService import  setup_right_panel_for_GV
-
-btnStyle = """
-QPushButton {
-    font-size: 16px;
-    padding: 10px;
-    margin: 5px;
-    border: 1px solid #555;
-    border-radius: 6px;
-    background-color: #e6e6e6;
-}
-QPushButton:hover {
-    background-color: #d4d4d4;
-    border: 1px solid #333;
-}
-"""
 
 class WaterMeterGUI(QMainWindow):
     def __init__(self):
@@ -63,32 +49,21 @@ class WaterMeterGUI(QMainWindow):
         self.advanced_tab = QWidget()
         self.graphical_visualization = QWidget()
 
-        self.tab_widget.addTab(self.home_tab, "Home")
+        # self.tab_widget.addTab(self.home_tab, "Home")
         self.tab_widget.addTab(self.advanced_tab, "Advanced")
         self.tab_widget.addTab(self.graphical_visualization, "Graphical Visualization")
         
         # Setup each tab
-        setup_home_tab(self)
-        setup_right_panel_for_Home(self)
+        # setup_home_tab(self)
+        # setup_right_panel_for_Home(self)
         setup_advanced_tab(self)
+        setup_right_panel_for_Advanced(self)
         setup_settings_tab(self)
 
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
         self.tab_widget.setCurrentIndex(0)  
 
-    def create_table(self) -> QTableWidget:
-        table = QTableWidget()
-        table.setColumnCount(4)
-        table.setHorizontalHeaderLabels(["Select", "Meter ID", "Timestamp", "Value"])
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        header = table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.Fixed)
-        table.setColumnWidth(1, 100)
-        header.setSectionResizeMode(2, QHeaderView.Stretch)
-        header.setSectionResizeMode(3, QHeaderView.Stretch)
-        return table
-
+    
     def clear_layout(self, layout):
         if layout is not None:
             while layout.count():
@@ -124,13 +99,19 @@ class WaterMeterGUI(QMainWindow):
         for row_data in readings:
             row = table.rowCount()
             table.insertRow(row)
+            
             checkbox_item = QTableWidgetItem()
             checkbox_item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
             checkbox_item.setCheckState(Qt.Unchecked)
             table.setItem(row, 0, checkbox_item)
-            table.setItem(row, 1, QTableWidgetItem(str(row_data[1])))
-            table.setItem(row, 2, QTableWidgetItem(str(row_data[2])))
-            table.setItem(row, 3, QTableWidgetItem(str(row_data[3])))
+            
+            for col_idx in range(12):
+                if col_idx < len(row_data):
+                    value = row_data[col_idx]
+                else:
+                    value = ""
+                item = QTableWidgetItem(str(value) if value is not None else "")
+                table.setItem(row, col_idx + 1, item)
 
     def update_table(self):
         readings = get_all_readings()
@@ -175,33 +156,59 @@ class WaterMeterGUI(QMainWindow):
             if timestamp and usage is not None:
                 save_meter(meter_id)
                 save_reading(meter_id, timestamp, usage)
-                # self.display_new_readings([data])
                 return (None, meter_id, timestamp, usage)
         return None
 
-    def display_new_readings(self, new_readings: list[tuple], table: QTableWidget = None):
-        """Display only the newly read readings in the appropriate table."""
-        if table is None:
-            current_tab = self.tab_widget.currentWidget()
-            if current_tab == self.home_tab:
-                table = self.home_table
-            elif current_tab == self.advanced_tab:
-                table = self.advanced_table
-            else:
-                return
+    def display_new_readings(self, readings : list[tuple],Date,Time):
+        self.advanced_table.setRowCount(0)  # clear table before adding
 
-        table.setRowCount(0)
-        for row_data in new_readings:
-            if row_data:
-                row = table.rowCount()
-                table.insertRow(row)
-                checkbox_item = QTableWidgetItem()
-                checkbox_item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
-                checkbox_item.setCheckState(Qt.Unchecked)
-                table.setItem(row, 0, checkbox_item)
-                table.setItem(row, 1, QTableWidgetItem(str(row_data[1])))
-                table.setItem(row, 2, QTableWidgetItem(str(row_data[2])))
-                table.setItem(row, 3, QTableWidgetItem(str(row_data[3])))
+        print(type(readings))
+        for reading in readings:
+            row_position = self.advanced_table.rowCount()
+            self.advanced_table.insertRow(row_position)
+
+            # Extract base fields
+            id_value = reading["ID"]
+            manufacturer = reading["Manufacturer"]
+            address = reading["Address"]
+            version = reading["Version"]
+            date_value = Date
+            time_value = Time
+            meter_type = reading["Meter Type"]
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            # Data Records
+            data_records = reading.get("Data Records", [])
+
+            # Loop through data records
+            for idx, record in enumerate(data_records):
+                row_position = self.advanced_table.rowCount()
+                self.advanced_table.insertRow(row_position)
+
+                # Fill columns
+                columns = [
+                    "",  # Select column
+                    id_value,
+                    manufacturer,
+                    address,
+                    version,
+                    date_value,
+                    time_value,
+                    meter_type,
+                    idx + 1,  # Date No
+                    record.get("Value", ""),
+                    record.get("Unit", ""),
+                    record.get("Description", ""),
+                    timestamp
+                ]
+
+                # Safely insert values
+                for col_idx, value in enumerate(columns):
+                    try:
+                        self.advanced_table.setItem(row_position, col_idx, QTableWidgetItem(str(value)))
+                    except IndexError:
+                        self.advanced_table.setItem(row_position, col_idx, QTableWidgetItem(""))
+
 
     def read_new_meter(self, meterId):
         new_reading = self.read_and_save_meter(meterId)
@@ -212,14 +219,19 @@ class WaterMeterGUI(QMainWindow):
 
     def read_all_meters(self):
         new_readings = []
-        meter_ids = get_all_meter_ids()  # ✅ Now dynamic
+        meter_ids = get_all_meter_ids()
         for meter_id in meter_ids:
-            new_reading = self.read_and_save_meter(meter_id)
+            print(meter_id)
+            byte_list = str_to_byte_list(meter_id)
+            new_reading = parse_mbus_payload(read_device_data(serialId=byte_list))
+            print(new_reading)
             if new_reading:
                 new_readings.append(new_reading)
 
         if new_readings:
-            self.populate_table(new_readings, self.advanced_table)
+            Date = datetime.now().strftime("%Y-%m-%d")
+            Time = datetime.now().strftime("%H:%M:%S")
+            self.display_new_readings(new_readings, Date, Time)
         else:
             QMessageBox.warning(self, "Warning", "No new meter data was read.")
 
