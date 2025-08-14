@@ -1,5 +1,4 @@
 # Python
-
 __pycache__
 __pycache__/
 *.py[cod]
@@ -22,6 +21,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+settings/__pycache__/settingsService.cpython-311.pyc
 
 # Virtual Environment
 build_env/
@@ -74,3 +74,4 @@ meter_data.db
 
 *.pyc
 meter_data.db
+
