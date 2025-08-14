@@ -1,6 +1,6 @@
 {
-    "comm_port": "COM1",
-    "baudrate": "2400",
+    "comm_port": "COM8",
+    "baudrate": "9600",
     "parity": "Even",
     "retry_counter": 3,
     "timeout": 3000,

@@ -14,7 +14,7 @@ from M_Bus_Services.M_bus_parser import parse_mbus_payload
 from M_Bus_Services.mbusfunction import read_device_data
 from database import get_all_readings, get_all_readings_id, save_reading, save_meter, get_all_meter_ids
 from M_Bus_Services.mbus_reader import read_meter
-from settings.settingsService import setup_settings_tab, translate_ui
+from settings.settingsService import get_settings, setup_settings_tab, translate_ui
 from home.homeService import setup_home_tab, setup_right_panel_for_Home
 from advanced.advancedService import setup_advanced_tab, setup_right_panel_for_Advanced, str_to_byte_list
 from Graphical_visualization.Graphical_visualizationService import  setup_right_panel_for_GV
@@ -22,7 +22,8 @@ from Graphical_visualization.Graphical_visualizationService import  setup_right_
 class WaterMeterGUI(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.current_language = 'en'
+        lang = get_settings().get('lang')
+        self.current_language = lang
         self.setWindowTitle("Water Meter GUI")
         self.setWindowIcon(QIcon('tools/icon/teksanIcon.ico'))
         self.resize(1800, 1000)
@@ -260,6 +261,7 @@ class WaterMeterGUI(QMainWindow):
 
 # ---------- Run App ----------
 def launch_gui():
+    print(get_settings())
     app = QApplication(sys.argv)
     window = WaterMeterGUI()
     window.show()

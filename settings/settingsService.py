@@ -80,6 +80,7 @@ translations = {
 }
 
 def setup_settings_tab(self):
+    settings_info = get_settings()
     settings_tab = QWidget()
     main_layout = QVBoxLayout()
 
@@ -91,6 +92,9 @@ def setup_settings_tab(self):
     self.comm_port = QComboBox()
     for port in range(1, 31):
         self.comm_port.addItems([f'COM{port}'])
+    comm_port_str = settings_info.get("comm_port", "")
+    comm_portIndex =self.comm_port.findText(comm_port_str)
+    self.comm_port.setCurrentIndex(comm_portIndex)
 
     grid.addWidget(self.comm_port, 0, 1)
 
@@ -98,6 +102,9 @@ def setup_settings_tab(self):
     grid.addWidget(QLabel("Baudrate"), 1, 0)
     self.baudrate = QComboBox()
     self.baudrate.addItems(["2400", "4800", "9600"])
+    baudrate_str = settings_info.get("baudrate", "")
+    baudrateIndex = self.baudrate.findText(baudrate_str)
+    self.baudrate.setCurrentIndex(baudrateIndex)
     grid.addWidget(self.baudrate, 1, 1)
     grid.addWidget(QLabel("bps"), 1, 2)
 
@@ -105,6 +112,9 @@ def setup_settings_tab(self):
     grid.addWidget(QLabel("Parity"), 2, 0)
     self.parity = QComboBox()
     self.parity.addItems(["Even", "Odd", "None"])
+    parity_str = settings_info.get("parity", "")
+    parityIndex = self.parity.findText(parity_str)
+    self.parity.setCurrentIndex(parityIndex)
     grid.addWidget(self.parity, 2, 1)
 
     # Retry Counter
@@ -126,7 +136,11 @@ def setup_settings_tab(self):
     grid.addWidget(QLabel("Language"), 5, 0)
     self.lang_combo = QComboBox()
     self.lang_combo.addItems(["English", "Türkçe"])
-    self.lang_combo.setCurrentIndex(0)
+    lang = settings_info.get("lang")
+    if lang == 'en':
+        self.lang_combo.setCurrentIndex(0)
+    else:
+        self.lang_combo.setCurrentIndex(1)
     grid.addWidget(self.lang_combo, 5, 1)
 
     main_layout.addLayout(grid)
@@ -140,7 +154,7 @@ def setup_settings_tab(self):
     btn_layout.addWidget(self.btn_apply)
     btn_layout.addWidget(self.btn_save)
     main_layout.addLayout(btn_layout)
-    
+
     # Set layout to the tab
     settings_tab.setLayout(main_layout)
     self.tab_widget.addTab(settings_tab, "Settings")
@@ -200,3 +214,11 @@ def change_language(self, selected_lang):
 
         translate_ui(self, self.current_language)
         self.lang_combo.blockSignals(False)
+
+def get_settings():
+        try:
+            with open("settings.json") as f:
+                print(f)
+                return json.load(f)
+        except FileNotFoundError:
+             return {}
