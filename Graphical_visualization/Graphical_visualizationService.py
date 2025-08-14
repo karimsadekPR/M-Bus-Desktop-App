@@ -116,10 +116,6 @@ def setup_graphical_visualization_tab(self):
     if not hasattr(self, 'meter_list') or not hasattr(self, 'date_range_select'):
         QMessageBox.warning(self, "Error", "Graphical Visualization panel is not initialized.")
         return
-    
-    if not hasattr(self, 'meter_list'):
-        QMessageBox.warning(self, "Error", "Meter list not initialized. Please try again.")
-        return
 
     if not hasattr(self, 'graphical_layout'):
         self.graphical_layout = QVBoxLayout()
@@ -130,6 +126,7 @@ def setup_graphical_visualization_tab(self):
         title.setStyleSheet("font-size: 20px; font-weight: bold; padding: 10px;")
         self.graphical_layout.addWidget(title)
 
+    # Remove old chart if exists
     if hasattr(self, 'graphical_chart') and self.graphical_chart:
         self.graphical_layout.removeWidget(self.graphical_chart)
         self.graphical_chart.setParent(None)
@@ -145,8 +142,79 @@ def setup_graphical_visualization_tab(self):
     else:
         date_limit = None
 
+    # Create and add chart
     self.graphical_chart = create_graphical_chart(self, selected_meter_ids, date_limit)
     self.graphical_layout.addWidget(self.graphical_chart)
+
+    # Create status table if it doesn't exist yet
+    if not hasattr(self, 'status_table'):
+        self.status_table = create_status_table(self, selected_meter_ids)
+        self.graphical_layout.addWidget(self.status_table)
+    else:
+        # Just update existing table
+        update_status_table(self.status_table, selected_meter_ids)
+
+
+
+
+def get_meter_status(meter_id): #will probably be deleted soon
+    readings = get_Readings_ById(meter_id)
+    if not readings:
+        return "Inactive"
+
+    # Last reading date
+    last_date_str = readings[-1][0]
+    last_date = datetime.strptime(last_date_str, "%Y-%m-%d")
+    days_diff = (datetime.now() - last_date).days
+
+    if days_diff <= 1:
+        return "Active"
+    elif days_diff <= 7:
+        return "Idle"
+    else:
+        return "Inactive"
+
+
+def create_status_table(self, meter_ids):
+    table = QTableWidget()
+    table.setColumnCount(2)
+    table.setHorizontalHeaderLabels(["Meter ID", "Status"])
+    table.setRowCount(len(meter_ids))
+
+    for row, meter_id in enumerate(meter_ids):
+        table.setItem(row, 0, QTableWidgetItem(meter_id))
+        status = get_meter_status(meter_id)
+        status_item = QTableWidgetItem(status)
+
+        # Optional: color coding
+        if status == "Active":
+            status_item.setForeground(Qt.green)
+        elif status == "Idle":
+            status_item.setForeground(Qt.darkYellow)
+        else:
+            status_item.setForeground(Qt.red)
+
+        table.setItem(row, 1, status_item)
+
+    table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+    return table
+
+
+def update_status_table(table, meter_ids):
+    table.setRowCount(len(meter_ids))
+    for row, meter_id in enumerate(meter_ids):
+        table.setItem(row, 0, QTableWidgetItem(meter_id))
+        status = get_meter_status(meter_id)
+        status_item = QTableWidgetItem(status)
+
+        if status == "Active":
+            status_item.setForeground(Qt.green)
+        elif status == "Idle":
+            status_item.setForeground(Qt.darkYellow)
+        else:
+            status_item.setForeground(Qt.red)
+
+        table.setItem(row, 1, status_item)
 
 
 def on_tab_changed(self, index):

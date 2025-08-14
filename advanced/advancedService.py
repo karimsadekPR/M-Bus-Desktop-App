@@ -117,7 +117,7 @@ def setup_right_panel_for_Advanced(self):
         self.right_layout.addWidget(self.sort_box)
 
         self.order_box = QComboBox()
-        self.order_box.addItems(["Ascending", "Descending"]) 
+        self.order_box.addItems(translations[lang]["order_box"]) 
         self.right_layout.addWidget(self.order_box)
 
         self.sort_button = QPushButton(translations[lang]["sort_button"])
@@ -125,7 +125,7 @@ def setup_right_panel_for_Advanced(self):
         self.right_layout.addWidget(self.sort_button)
 
         self.right_layout.addSpacing(10)
-        self.right_layout.addWidget(QLabel("Date Filter:"))
+        self.right_layout.addWidget(QLabel(translations[lang]["date_filter"]))
 
         date_layout = QHBoxLayout()
         self.date_from = QDateEdit(QDate.currentDate())
@@ -144,7 +144,7 @@ def setup_right_panel_for_Advanced(self):
         self.right_layout.addWidget(self.checkbox)
 
         self.filter_box = QComboBox()
-        self.filter_box.addItems(["Meter ID", "Timestamp", "Value"])
+        self.filter_box.addItems(translations[lang]["filter_box"])
         self.right_layout.addWidget(self.filter_box)
 
         self.filter_input = QLineEdit()
