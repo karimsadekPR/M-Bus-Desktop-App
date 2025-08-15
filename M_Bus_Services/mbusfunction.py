@@ -1,6 +1,8 @@
 import serial
 import time
 
+from settings.settingsService import get_settings
+
 
 controls = {
     "SND_UD": 0x7b,
@@ -88,16 +90,26 @@ def build_long_frame(SerialId):
 
 
 def read_device_data(serialId):
-    port="COM6"
-    baudrate=2400
+    settings_info = get_settings()
+    port= settings_info.get("comm_port", "COM6")
+    baudrate= settings_info.get("baudrate", 2400)
+
+    parity_map = {
+    "Even": serial.PARITY_EVEN,
+    "None": serial.PARITY_NONE
+    }
+
+    parity_value = parity_map.get(settings_info["parity"], serial.PARITY_NONE)  # default to NONE
+
     try:
         ser = serial.Serial(
             port,
-            baudrate,
+            int(baudrate),
             bytesize=serial.EIGHTBITS,
-            parity=serial.PARITY_EVEN,
+            parity=parity_value,
             stopbits=serial.STOPBITS_ONE,
-            timeout=1)
+            timeout= settings_info["timeout"] /1000
+            )
         # this is a request to restart and make the mbus ready for my request
         short_frame = build_short_frame(controls["REQ_UD2"], 0xFF)
         ser.write(short_frame)
@@ -123,7 +135,7 @@ def read_device_data(serialId):
         response2 = ser.read(256)
         if response2:
             print(f"Response ({len(response2)} bytes): {response2.hex()}")
-            return parse_raw_response(response2.hex())
+            # return parse_raw_response(response2.hex())
         else:
             print("No response from device.")
 

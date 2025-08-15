@@ -101,17 +101,19 @@ def setup_settings_tab(self):
     # Baudrate
     grid.addWidget(QLabel("Baudrate"), 1, 0)
     self.baudrate = QComboBox()
-    self.baudrate.addItems(["2400", "4800", "9600"])
+    self.baudrate.addItems(["2400"])
+    self.baudrate.setEditable(False)
     baudrate_str = settings_info.get("baudrate", "")
     baudrateIndex = self.baudrate.findText(baudrate_str)
-    self.baudrate.setCurrentIndex(baudrateIndex)
+    if baudrateIndex != -1:
+        self.baudrate.setCurrentIndex(baudrateIndex)
     grid.addWidget(self.baudrate, 1, 1)
     grid.addWidget(QLabel("bps"), 1, 2)
 
     # Parity
     grid.addWidget(QLabel("Parity"), 2, 0)
     self.parity = QComboBox()
-    self.parity.addItems(["Even", "Odd", "None"])
+    self.parity.addItems(["Even","None"])
     parity_str = settings_info.get("parity", "")
     parityIndex = self.parity.findText(parity_str)
     self.parity.setCurrentIndex(parityIndex)
