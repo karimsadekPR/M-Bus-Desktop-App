@@ -80,7 +80,7 @@ def parse_mbus_payload(frame=None):
                 idx += 1
                 if VIFE == 0x17:
                     description = "Error Flags"
-                    unit = "Binary"
+                    unit = "-"
                 elif VIFE == 0x61:
                     description = "Cumulation Counter"
                     unit = "-"

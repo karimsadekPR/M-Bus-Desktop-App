@@ -63,19 +63,20 @@ def get_meter_id(self):
         Time = datetime.now().strftime("%H:%M:%S")
         save_meter(meter_id= readings['ID'],manufacturer= readings['Manufacturer'],address= readings['Address'],version= readings['Version'],meter_type= readings['Meter Type'])
         for reading in readings['Data Records']:
-            save_reading(
-                meterId= readings["ID"],
-                manufacturer= readings["Manufacturer"],
-                address= readings["Address"],
-                version= readings["Version"],
-                date= Date,
-                time= Time,
-                meter_type= readings["Meter Type"],
-                value=reading['Value'],
-                unit=reading['Unit'],
-                description=reading['Description'],
-                date_no=None
-                )
+            if reading['Unit'] != '-':
+                save_reading(
+                    meterId= readings["ID"],
+                    manufacturer= readings["Manufacturer"],
+                    address= readings["Address"],
+                    version= readings["Version"],
+                    date= Date,
+                    time= Time,
+                    meter_type= readings["Meter Type"],
+                    value=reading['Value'],
+                    unit=reading['Unit'],
+                    description=reading['Description'],
+                    date_no=None
+                    )
             
         QMessageBox.information(self, "Meter ID Entered", f"You entered: {meter_id}")
         print(readings)
