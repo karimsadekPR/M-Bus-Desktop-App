@@ -143,12 +143,42 @@ def get_filter_date(StartDate, EndDate):
     conn.close()
     return rows
 
-def delete_meter(meter_id, meter_value, meter_time):
+import sqlite3
+
+def delete_Reading(meter_id, meter_date, meter_time, meter_type, meter_value, meter_unit, meter_description):
     conn = sqlite3.connect('meter_data.db')
     cur = conn.cursor()
-    cur.execute('DELETE FROM readings WHERE meterId = ?', (meter_id))
-    conn.commit()
-    conn.close()
+
+    try:
+        query = """
+            DELETE FROM readings
+            WHERE meterId = ?
+              AND date = ?
+              AND time = ?
+              AND meter_type = ?
+              AND value = ?
+              AND unit = ?
+              AND description = ?
+        """
+        params = (
+            meter_id,
+            meter_date,
+            meter_time,
+            meter_type,
+            meter_value,
+            meter_unit,
+            meter_description
+        )
+
+        cur.execute(query, params)
+        conn.commit()
+
+    except Exception as e:
+        print(f"Error deleting reading: {e}")
+
+    finally:
+        conn.close()
+
 
 
 def get_last_7_days():
