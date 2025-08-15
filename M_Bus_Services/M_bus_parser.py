@@ -1,4 +1,5 @@
 def parse_mbus_payload(frame=None):
+    print(frame)
     if frame is None:
         frame = {
             'frame_type': 'long variable length',

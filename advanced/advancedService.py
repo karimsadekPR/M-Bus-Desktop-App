@@ -57,7 +57,8 @@ def get_meter_id(self):
     if ok and meter_id.strip():
 
         byte_list = str_to_byte_list(meter_id)
-        readings = parse_mbus_payload(read_device_data(serialId=byte_list))
+        format_ = read_device_data(serialId=byte_list)
+        readings = parse_mbus_payload(format_)
         print(readings)
         Date = datetime.now().strftime("%Y-%m-%d")
         Time = datetime.now().strftime("%H:%M:%S")

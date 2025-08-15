@@ -135,7 +135,7 @@ def read_device_data(serialId):
         response2 = ser.read(256)
         if response2:
             print(f"Response ({len(response2)} bytes): {response2.hex()}")
-            # return parse_raw_response(response2.hex())
+            return parse_raw_response(response2.hex())
         else:
             print("No response from device.")
 
