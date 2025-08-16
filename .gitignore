@@ -38,7 +38,6 @@ env/
 *~
 
 # Database & Data Files
-*.db
 *.sqlite
 *.sqlite3
 *.csv
@@ -65,7 +64,6 @@ dist/
 *.pdb
 
 # Project specific
-meter_data.db
 *.csv
 *.xlsx
 *.txt
