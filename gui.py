@@ -99,6 +99,12 @@ class WaterMeterGUI(QMainWindow):
         for row_data in readings:
             row = table.rowCount()
             table.insertRow(row)
+
+            table.setColumnCount(12)
+            table.setHorizontalHeaderLabels([
+                "Select","Meter ID", "Manufacturer", "Address", "Version", "Date", "Time",
+                "Meter Type", "Date No", "Value", "Unit", "Description", "Timestamp"
+            ])
             
             checkbox_item = QTableWidgetItem()
             checkbox_item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
@@ -115,11 +121,8 @@ class WaterMeterGUI(QMainWindow):
 
     def update_table(self):
         readings = get_all_readings()
-        current_tab = self.tab_widget.currentWidget()
-        if current_tab == self.home_tab:
-            self.populate_table(readings, self.home_table)
-        elif current_tab == self.advanced_tab:
-            self.populate_table(readings, self.advanced_table)
+        self.populate_table(readings, self.advanced_table)
+
 
     def apply_all_filters(self):
         readings = get_all_readings()
