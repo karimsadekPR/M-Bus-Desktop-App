@@ -1,5 +1,6 @@
 import sqlite3
-import datetime
+from datetime import datetime, timedelta
+
 
 import serial
 
@@ -297,3 +298,16 @@ def get_all_meter_ids():
     return [row[0] for row in rows]
 
 
+def query_readings(params=()):
+    query = """
+        SELECT date, time, value FROM readings
+        WHERE meterId = ?
+        AND datetime(date || ' ' || time) >= ?
+        ORDER BY datetime(date || ' ' || time)
+    """
+    conn = sqlite3.connect("meter_data.db")
+    c = conn.cursor()
+    c.execute(query, params)
+    rows = c.fetchall()
+    conn.close()
+    return rows
