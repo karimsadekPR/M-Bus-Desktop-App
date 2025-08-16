@@ -1,6 +1,11 @@
 import sqlite3
 import datetime
 
+import serial
+
+from M_Bus_Services.mbusfunction import scan_mbus
+from settings.settingsService import get_settings
+
 def init_db():
     conn = sqlite3.connect('meter_data.db')
     conn.execute('''
@@ -115,6 +120,88 @@ def get_all_readings_id(meterId):
             ''', (meterId,))
         rows = cur.fetchall()
         return rows
+
+def sync_mbus_to_db():
+    conn = sqlite3.connect('meter_data.db')
+    cur = conn.cursor()
+
+    try:
+        # Step 1: Get all meters from M-Bus network
+        settings_info = get_settings()
+        
+        parity_map = {
+        "Even": serial.PARITY_EVEN,
+        "None": serial.PARITY_NONE
+                }
+        parity_value = parity_map.get(settings_info["parity"], serial.PARITY_NONE)  # default to NONE
+
+
+        mbus_readings = scan_mbus(port=settings_info["comm_port"],baudrate=settings_info["baudrate"],parity=parity_value,timeout=settings_info["timeout"])  
+        # Example format:
+        # [
+        #   {"meter_id": 1, "meter_date": "2025-08-15", "meter_time": "14:22:05", "meter_type": "Water", "meter_value": 123.45, "meter_unit": "m³", "meter_description": "Basement"},
+        #   ...
+        # ]
+
+        for reading in mbus_readings:
+            meter_id = reading["meter_id"]
+
+            # Step 2: Check if meter exists
+            cur.execute("SELECT COUNT(*) FROM meters WHERE meterId = ?", (meter_id,))
+            meter_exists = cur.fetchone()[0] > 0
+
+            if not meter_exists:
+                print(f"New meter found: {meter_id}, adding to database.")
+                cur.execute("""
+                    INSERT INTO meters (meterId, meterType, meterUnit, meterDescription)
+                    VALUES (?, ?, ?, ?)
+                """, (
+                    meter_id,
+                    reading["meter_type"],
+                    reading["meter_unit"],
+                    reading["meter_description"]
+                ))
+
+            # Step 3: Check if reading already exists
+            cur.execute("""
+                SELECT COUNT(*) FROM readings
+                WHERE meterId = ?
+                  AND meterDate = ?
+                  AND meterTime = ?
+                  AND meterValue = ?
+            """, (
+                meter_id,
+                reading["meter_date"],
+                reading["meter_time"],
+                reading["meter_value"]
+            ))
+            reading_exists = cur.fetchone()[0] > 0
+
+            if not reading_exists:
+                print(f"New reading for meter {meter_id}, adding to database.")
+                cur.execute("""
+                    INSERT INTO readings (meterId, meterDate, meterTime, meterType, meterValue, meterUnit, meterDescription)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    meter_id,
+                    reading["meter_date"],
+                    reading["meter_time"],
+                    reading["meter_type"],
+                    reading["meter_value"],
+                    reading["meter_unit"],
+                    reading["meter_description"]
+                ))
+            else:
+                print(f"Reading for meter {meter_id} already exists, skipping.")
+
+        conn.commit()
+
+    except Exception as e:
+        print(f"Error syncing M-Bus: {e}")
+
+    finally:
+        conn.close()
+
 
 def get_all_meters():
     conn = sqlite3.connect('meter_data.db')

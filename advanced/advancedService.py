@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, QDate
 from M_Bus_Services.M_bus_parser import parse_mbus_payload
 from M_Bus_Services.mbusfunction import read_device_data
-from database import save_meter, save_reading
+from database import get_all_meters, save_meter, save_reading, sync_mbus_to_db
 from style.btnStyle import btnStyle
 from tools.exportCSV import export_selected_to_csv, export_selected_to_excel, export_selected_to_txt
 from tools.deleteReadings import delete_selected_rows
@@ -113,27 +113,38 @@ def setup_right_panel_for_Advanced(self):
         self.right_layout.addStretch()
         self.btn_load = QPushButton("Load All Readings")
         self.btn_load.setText(translations[lang]["btn_load"])
-        self.btn_load.setStyleSheet(btnStyle)
+        # self.btn_load.setStyleSheet(btnStyle)
         self.btn_load.clicked.connect(self.update_table)
         self.right_layout.addWidget(self.btn_load)
+
+        self.btn_load_meters = QPushButton("Load Meters")
+        self.btn_load_meters.setText("load meters")
+        # self.btn_load_meters.setStyleSheet(btnStyle)
+        self.btn_load_meters.clicked.connect(lambda: self.display_all_meters())
+        self.right_layout.addWidget(self.btn_load_meters)
 
         # Create the button
         self.btn_read = QPushButton("Read New Meter")
         self.btn_read.setText(translations[lang]["btn_read"])
-        self.btn_read.setStyleSheet(btnStyle)
+        # self.btn_read.setStyleSheet(btnStyle)
         self.btn_read.clicked.connect(lambda: get_meter_id(self))
         
         self.right_layout.addWidget(self.btn_read)
 
         self.btn_read_all = QPushButton("Read All Meters")
         self.btn_read_all.setText(translations[lang]["btn_read_all"])
-        self.btn_read_all.setStyleSheet(btnStyle)
+        # self.btn_read_all.setStyleSheet(btnStyle)
         self.btn_read_all.clicked.connect(lambda: self.read_all_meters())
         self.right_layout.addWidget(self.btn_read_all)
 
+        self.read_mbus = QPushButton(translations[lang]["read_mbus"])
+        self.read_mbus.clicked.connect(lambda: sync_mbus_to_db())
+        self.right_layout.addWidget(self.read_mbus)
+
+
         self.export_btn = QPushButton("Export")
         self.export_btn.setText(translations[lang]["export_btn"])
-        self.export_btn.setStyleSheet(btnStyle)
+        # self.export_btn.setStyleSheet(btnStyle)
         self.export_btn.clicked.connect(lambda: export_methods(self))
         self.right_layout.addWidget(self.export_btn)
 
@@ -145,7 +156,7 @@ def setup_right_panel_for_Advanced(self):
 
         self.btn_delete = QPushButton("Delete") 
         self.btn_delete.setText(translations[lang]["btn_delete"])
-        self.btn_delete.setStyleSheet(btnStyle)
+        # self.btn_delete.setStyleSheet(btnStyle)
         self.btn_delete.clicked.connect(lambda: delete_selected_rows(self))
         self.right_layout.addWidget(self.btn_delete)
 
@@ -192,6 +203,6 @@ def setup_right_panel_for_Advanced(self):
 
         self.filter_button = QPushButton("Filter")
         self.filter_button.setText(translations[lang]["filter_button"])
-        self.filter_button.setStyleSheet(btnStyle)
+        # self.filter_button.setStyleSheet(btnStyle)
         self.filter_button.clicked.connect(lambda: self.apply_all_filters())
         self.right_layout.addWidget(self.filter_button)

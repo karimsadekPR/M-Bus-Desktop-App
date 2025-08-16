@@ -3,7 +3,6 @@ import time
 
 from settings.settingsService import get_settings
 
-
 controls = {
     "SND_UD": 0x7b,
     "REQ_UD2": 0x40,
@@ -87,6 +86,58 @@ def build_long_frame(SerialId):
 
     frame = frame_start + [control, address] + data_payload + frame_end
     return bytes(frame)
+
+def scan_mbus(port, baudrate, parity, timeout):
+    results = []
+
+    controls = {
+        "REQ_UD2": 0x5B,
+        "SND_UD": 0x53
+    }
+
+    with serial.Serial(
+        port=port,
+        baudrate=baudrate,
+        bytesize=serial.EIGHTBITS,
+        parity=parity,
+        stopbits=serial.STOPBITS_ONE,
+        timeout=timeout / 1000
+    ) as ser:
+        
+        # Broadcast request to wake up all meters
+        ser.write(build_short_frame(controls["REQ_UD2"], 0xFF))
+        time.sleep(1)
+
+        for address in range(1, 5):  # adjust range for your network
+            ser.write(build_short_frame(controls["REQ_UD2"], address))
+            time.sleep(0.5)
+            response = ser.read(256)
+
+            if not response:
+                print(f"No response from address {address}")
+                continue
+
+            print(f"REQ_UD2 response from {address}: {response.hex()}")
+            parsed = parse_raw_response(response.hex())
+            
+            if "error" in parsed:
+                print(f"Parsing error for address {address}: {parsed['error']}")
+                continue
+
+            # Optional: Send SND_UD to get more detailed data
+            ser.write(build_short_frame(controls["SND_UD"], address))
+            time.sleep(0.5)
+            response2 = ser.read(256)
+
+            if response2:
+                print(f"SND_UD response from {address}: {response2.hex()}")
+                parsed2 = parse_raw_response(response2.hex())
+                print(parsed2)
+                results.append(parsed2)
+            else:
+                results.append(parsed)
+
+    return results
 
 
 def read_device_data(serialId):

@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTableWidget, QLabel, QHeaderView,
     QTableWidgetItem, QMessageBox,
-    QTabWidget
+    QTabWidget, QCheckBox
 )
 
 from PyQt5.QtGui import QIcon
@@ -12,8 +12,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 from M_Bus_Services.M_bus_parser import parse_mbus_payload
 from M_Bus_Services.mbusfunction import read_device_data
-from database import get_all_readings, get_all_readings_id, save_reading, save_meter, get_all_meter_ids
-from M_Bus_Services.mbus_reader import read_meter
+from database import get_all_meters, get_all_readings,save_reading, save_meter, get_all_meter_ids
 from settings.settingsService import get_settings, setup_settings_tab, translate_ui
 from home.homeService import setup_home_tab, setup_right_panel_for_Home
 from advanced.advancedService import setup_advanced_tab, setup_right_panel_for_Advanced, str_to_byte_list
@@ -147,46 +146,81 @@ class WaterMeterGUI(QMainWindow):
             self.advanced_table.sortItems(column_index, order)
 
 
-    def read_and_save_meter(self, meter_id: int) -> tuple:
-        """Read meter data and return the newly saved reading."""
-        data = read_meter(meter_id)
+    def read_and_save_meter(self, meter_id: str) -> dict | None:
+        """Read meter data, save it, and return the newly saved reading as a dict."""
+        data = read_device_data(meter_id)
         print(data)
         if data:
             timestamp = data.get("timestamp")
             usage = data.get("value")
             if timestamp and usage is not None:
-                save_meter(meter_id)
-                save_reading(meter_id, timestamp, usage)
-                return (None, meter_id, timestamp, usage)
+                # Extract details for saving
+                manufacturer = data.get("manufacturer", "")
+                address = data.get("address", "")
+                version = data.get("version", "")
+                meter_type = data.get("meter_type", "")
+
+                # Save to meters table
+                save_meter(
+                    meter_id,
+                    manufacturer=manufacturer,
+                    address=address,
+                    version=version,
+                    meter_type=meter_type
+                )
+
+                # Current date & time split
+                Date = datetime.now().strftime("%Y-%m-%d")
+                Time = datetime.now().strftime("%H:%M:%S")
+
+                # Save to readings table
+                save_reading(
+                    meterId=meter_id,
+                    manufacturer=manufacturer,
+                    address=address,
+                    version=version,
+                    date=Date,
+                    time=Time,
+                    meter_type=meter_type,
+                    date_no=None,
+                    value=usage,
+                    unit=data.get("unit", ""),
+                    description="Usage",
+                    timestamp=timestamp
+                )
+
+                # Return in dict form so display_new_readings works
+                return {
+                    "ID": meter_id,
+                    "Manufacturer": manufacturer,
+                    "Address": address,
+                    "Version": version,
+                    "Meter Type": meter_type,
+                    "Data Records": [
+                        {"Value": usage, "Unit": data.get("unit", ""), "Description": "Usage"}
+                    ],
+                    "timestamp": timestamp
+                }
         return None
 
-    def display_new_readings(self, readings : list[tuple],Date,Time):
-        self.advanced_table.setRowCount(0)  # clear table before adding
-
-        print(type(readings))
+    def display_new_readings(self, readings: list[dict], Date, Time):
+        print(readings)
         for reading in readings:
-            row_position = self.advanced_table.rowCount()
-            self.advanced_table.insertRow(row_position)
-
-            # Extract base fields
-            id_value = reading["ID"]
-            manufacturer = reading["Manufacturer"]
-            address = reading["Address"]
-            version = reading["Version"]
+            id_value = reading.get("ID", "")
+            manufacturer = reading.get("Manufacturer", "")
+            address = reading.get("Address", "")
+            version = reading.get("Version", "")
             date_value = Date
             time_value = Time
-            meter_type = reading["Meter Type"]
+            meter_type = reading.get("Meter Type", "")
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            # Data Records
             data_records = reading.get("Data Records", [])
 
-            # Loop through data records
             for idx, record in enumerate(data_records):
                 row_position = self.advanced_table.rowCount()
                 self.advanced_table.insertRow(row_position)
 
-                # Fill columns
                 columns = [
                     "",  # Select column
                     id_value,
@@ -196,68 +230,89 @@ class WaterMeterGUI(QMainWindow):
                     date_value,
                     time_value,
                     meter_type,
-                    idx + 1,  # Date No
+                    idx + 1,  # Data No
                     record.get("Value", ""),
                     record.get("Unit", ""),
                     record.get("Description", ""),
                     timestamp
                 ]
-
-                # Safely insert values
                 for col_idx, value in enumerate(columns):
-                    try:
-                        self.advanced_table.setItem(row_position, col_idx, QTableWidgetItem(str(value)))
-                    except IndexError:
-                        self.advanced_table.setItem(row_position, col_idx, QTableWidgetItem(""))
+                    self.advanced_table.setItem(row_position, col_idx, QTableWidgetItem(str(value)))
+
+    def display_all_meters(self):
+            meters = get_all_meters()  # Assuming this returns a list of dicts or objects
+            print(meters)
+            self.advanced_table.setRowCount(0)
+            self.advanced_table.setColumnCount(6)
+            self.advanced_table.setHorizontalHeaderLabels([
+                "Select", "ID", "Manufacturer", "Address", "Version", "Meter Type"
+            ])
+            self.advanced_table.setColumnWidth(0, 50)
+
+            for row, meter in enumerate(meters):
+                self.advanced_table.insertRow(row)
+
+                checkbox_item = QTableWidgetItem()
+                checkbox_item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
+                checkbox_item.setCheckState(Qt.Unchecked)
+                self.advanced_table.setItem(row, 0, checkbox_item)
+
+                # Fill in other columns (assuming dict keys; adjust to your data)
+                self.advanced_table.setItem(row, 1, QTableWidgetItem(str(meter[1])))
+                self.advanced_table.setItem(row, 2, QTableWidgetItem(meter[2]))
+                self.advanced_table.setItem(row, 3, QTableWidgetItem(meter[3]))
+                self.advanced_table.setItem(row, 4, QTableWidgetItem(meter[4]))
+                self.advanced_table.setItem(row, 5, QTableWidgetItem(meter[5]))
 
 
     def read_new_meter(self, meterId):
         new_reading = self.read_and_save_meter(meterId)
         if new_reading:
-            self.display_new_readings([new_reading])
+            Date = datetime.now().strftime("%Y-%m-%d")
+            Time = datetime.now().strftime("%H:%M:%S")
+            self.display_new_readings([new_reading], Date, Time)
         else:
             QMessageBox.warning(self, "Warning", "Failed to read meter data.")
 
     def read_all_meters(self):
         new_readings = []
         meter_ids = get_all_meter_ids()
+        self.advanced_table.setRowCount(0)  # clear table before adding
         for meter_id in meter_ids:
-            print(meter_id)
             byte_list = str_to_byte_list(meter_id)
             new_reading = parse_mbus_payload(read_device_data(serialId=byte_list))
-            print(new_reading)
             if new_reading:
-                new_readings.append(new_reading)
-
-        if new_readings:
-            Date = datetime.now().strftime("%Y-%m-%d")
-            Time = datetime.now().strftime("%H:%M:%S")
-            self.display_new_readings(new_readings, Date, Time)
-        else:
-            QMessageBox.warning(self, "Warning", "No new meter data was read.")
+                for record in new_reading["Data Records"]:
+                    if record["Unit"] != "-":
+                        Date = datetime.now().strftime("%Y-%m-%d")
+                        Time = datetime.now().strftime("%H:%M:%S")
+                        save_reading(meterId= new_reading["ID"], manufacturer= new_reading["Manufacturer"], address= new_reading["Address"], version = new_reading["Version"], date= Date, time= Time,
+                        meter_type= new_reading["Meter Type"] , date_no= None, value= record["Value"], unit= record["Unit"], description= record["Description"], timestamp=None)
+                        new_readings.append(new_reading)
+                        self.display_new_readings(new_readings, Date, Time)
 
     def filter_by_date(self, readings: list[tuple]) -> list[tuple]:
-        if not self.checkbox.isChecked():
-            return readings
-        date_from = self.date_from.date().toPyDate()
-        date_to = self.date_to.date().toPyDate()
-        return [r for r in readings if date_from <= datetime.strptime(r[2][:10], "%Y-%m-%d").date() <= date_to]  # ✅ Proper date comparison
+            if not self.checkbox.isChecked():
+                return readings
+            date_from = self.date_from.date().toPyDate()
+            date_to = self.date_to.date().toPyDate()
+            return [r for r in readings if date_from <= datetime.strptime(r[2][:10], "%Y-%m-%d").date() <= date_to]  # ✅ Proper date comparison
 
     def filter_by_input(self, readings: list[tuple]) -> list[tuple]:
-        filter_type = self.filter_box.currentText()
-        value = self.filter_input.text().strip()
-        if not value:
+            filter_type = self.filter_box.currentText()
+            value = self.filter_input.text().strip()
+            if not value:
+                return readings
+            if filter_type == "Meter ID":
+                return [r for r in readings if str(r[1]) == value]
+            elif filter_type == "Timestamp":
+                return [r for r in readings if value in r[2]]
+            elif filter_type == "Value":
+                try:
+                    return [r for r in readings if float(r[3]) == float(value)]
+                except ValueError:
+                    return []
             return readings
-        if filter_type == "Meter ID":
-            return [r for r in readings if str(r[1]) == value]
-        elif filter_type == "Timestamp":
-            return [r for r in readings if value in r[2]]
-        elif filter_type == "Value":
-            try:
-                return [r for r in readings if float(r[3]) == float(value)]
-            except ValueError:
-                return []
-        return readings
 
 # ---------- Run App ----------
 def launch_gui():
