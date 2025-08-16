@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QTabWidget, QFileDialog, QSizePolicy, QAbstractButton, QListWidget, QListWidgetItem
 )
 from PyQt5.QtCore import Qt
-from database import get_all_readings_id
+from database import get_all_meter_ids, get_all_readings_id
 from settings.settingsService import translations
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -95,7 +95,8 @@ def setup_right_panel_for_GV(self):
     # Multi-select meter list
     self.meter_list = QListWidget()
     self.meter_list.setSelectionMode(QListWidget.MultiSelection)
-    for meter_id in ["1", "2", "3"]:
+    meter_ids_list = get_all_meter_ids()
+    for meter_id in meter_ids_list:
         self.meter_list.addItem(QListWidgetItem(meter_id))
     self.right_layout.addWidget(self.meter_list)
 
