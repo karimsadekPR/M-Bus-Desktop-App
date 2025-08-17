@@ -17,10 +17,7 @@ from style.btnStyle import btnStyle
 from datetime import datetime
 
 
-from datetime import datetime
 import matplotlib.dates as mdates
-
-import sqlite3
 from datetime import datetime, timedelta
 
 def get_daily_readings(meter_id, period="7d"):
@@ -194,9 +191,6 @@ def setup_graphical_visualization_tab(self):
     # else:
     #     # Just update existing table
     #     update_status_table(self.status_table, selected_meter_ids)
-
-
-
 
 def get_meter_status(meter_id): #will probably be deleted soon
     readings = get_all_readings_id(meter_id)
