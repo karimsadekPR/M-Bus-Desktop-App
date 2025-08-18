@@ -41,7 +41,7 @@ translations = {
         "read_mbus":"Read MBUS",
         "export_btn":"Export",
         "order_box":["Ascending","Descending"],
-        "filter_box":["Meter ID","Time Stamp","Value"],
+        "filter_box":["Meter ID"],
         "date_filter":"Date Filter:",
         # Add more as needed
     },
@@ -76,7 +76,7 @@ translations = {
         "read_mbus":"MBUS Oku",
         "export_btn":"aktar",
         "order_box":["Artan","Azalan"],
-        "filter_box":["Sayaç Kimliği","Zaman Damgası","Değer"],
+        "filter_box":["Sayaç Kimliği"],
         "date_filter":"tarih_filtresi: "
     }
 }

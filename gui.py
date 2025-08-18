@@ -333,33 +333,6 @@ class WaterMeterGUI(QMainWindow):
         if filter_type.lower() == "meter id":
             return [r for r in readings if len(r) > 1 and str(r[0]) == value]
 
-        # --- Datetime filter ---
-        elif filter_type.lower() == "datetime":
-            dt_formats = ["%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"]  # allow seconds optional
-            target_dt = None
-            for fmt in dt_formats:
-                try:
-                    target_dt = datetime.strptime(value, fmt)
-                    break
-                except ValueError:
-                    continue
-            if not target_dt:
-                print("Invalid datetime format:", value)
-                return []
-            return [r for r in readings if combine_datetime(r) == target_dt]
-
-        # --- Value filter ---
-        elif filter_type.lower() == "value":
-            try:
-                target_val = float(value)
-            except ValueError:
-                print("Invalid value:", value)
-                return []
-            return [
-                r for r in readings 
-                if len(r) > 9 and safe_float(r[9]) == target_val
-            ]
-
         # Default: return everything if filter not recognized
         return readings
 
