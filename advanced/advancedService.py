@@ -16,25 +16,29 @@ from settings.settingsService import translations
 
 
 def setup_advanced_tab(self):
+        lang = self.current_language
         layout = QVBoxLayout()
         self.advanced_tab.setLayout(layout)
 
         self.advanced_title = QLabel("Advanced Water Meter Readings")
-        self.advanced_title.setObjectName("advanced_title")
+        self.advanced_title.setText(translations[lang]["advanced_title"])
         self.advanced_title.setAlignment(Qt.AlignCenter)
         self.advanced_title.setStyleSheet("font-size: 20px; font-weight: bold; margin: 20px; padding: 10px;")
         layout.addWidget(self.advanced_title)
 
-        self.advanced_table = create_table()
+        self.advanced_table = create_table(self)
         layout.addWidget(self.advanced_table)
 
 
-def create_table():
+def create_table(self):
+    lang = self.current_language
     table = QTableWidget()
     table.setColumnCount(12)
     table.setHorizontalHeaderLabels([
-        "Select","Meter ID", "Manufacturer", "Address", "Version", "Date", "Time",
-        "Meter Type", "Date No", "Value", "Unit", "Description", "Timestamp"
+        translations[lang]["select"],translations[lang]["meter_id"],translations[lang]["manufacturer"],
+        translations[lang]["address"],translations[lang]["version"],translations[lang]["date"],translations[lang]["time"],
+        translations[lang]["meter_type"],translations[lang]["date_no"],translations[lang]["value"],
+        translations[lang]["unit"],translations[lang]["description"],translations[lang]["timestamp"]
     ])
     
     header = table.horizontalHeader()
