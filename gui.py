@@ -18,6 +18,7 @@ from home.homeService import setup_home_tab, setup_right_panel_for_Home
 from advanced.advancedService import setup_advanced_tab, setup_right_panel_for_Advanced, str_to_byte_list
 from Graphical_visualization.Graphical_visualizationService import  setup_right_panel_for_GV
 from datetime import datetime
+from settings.settingsService import translations
 
 def combine_datetime(r):
     try:
@@ -103,6 +104,7 @@ class WaterMeterGUI(QMainWindow):
             setup_right_panel_for_GV(self)
 
     def populate_table(self, readings: list[tuple], table: QTableWidget):
+        lang = self.current_language
         table.setRowCount(0)
         for row_data in readings:
             row = table.rowCount()
@@ -110,8 +112,10 @@ class WaterMeterGUI(QMainWindow):
 
             table.setColumnCount(12)
             table.setHorizontalHeaderLabels([
-                "Select","Meter ID", "Manufacturer", "Address", "Version", "Date", "Time",
-                "Meter Type", "Date No", "Value", "Unit", "Description", "Timestamp"
+            translations[lang]["select"],translations[lang]["meter_id"],translations[lang]["manufacturer"],
+            translations[lang]["address"],translations[lang]["version"],translations[lang]["date"],translations[lang]["time"],
+            translations[lang]["meter_type"],translations[lang]["date_no"],translations[lang]["value"],
+            translations[lang]["unit"],translations[lang]["description"],translations[lang]["timestamp"]
             ])
             
             checkbox_item = QTableWidgetItem()

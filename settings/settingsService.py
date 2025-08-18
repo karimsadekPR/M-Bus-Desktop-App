@@ -43,6 +43,20 @@ translations = {
         "order_box":["Ascending","Descending"],
         "filter_box":["Meter ID"],
         "date_filter":"Date Filter:",
+        "select": "Select",
+        "meter_id": "Meter ID",
+        "manufacturer": "Manufacturer",
+        "address": "Address",
+        "version": "Version",
+        "date": "Date",
+        "time": "Time",
+        "meter_type": "Meter Type",
+        "date_no": "Date No",
+        "value": "Value",
+        "unit": "Unit",
+        "description": "Description",
+        "timestamp": "Timestamp",
+        "load_meters":"Load meters",
         # Add more as needed
     },
     'tr': {
@@ -77,7 +91,21 @@ translations = {
         "export_btn":"aktar",
         "order_box":["Artan","Azalan"],
         "filter_box":["Sayaç Kimliği"],
-        "date_filter":"tarih_filtresi: "
+        "date_filter":"tarih_filtresi: ",
+        "select": "Seç",
+        "meter_id": "Sayaç ID",
+        "manufacturer": "Üretici",
+        "address": "Adres",
+        "version": "Versiyon",
+        "date": "Tarih",
+        "time": "Saat",
+        "meter_type": "Sayaç Türü",
+        "date_no": "Tarih No",
+        "value": "Değer",
+        "unit": "Birim",
+        "description": "Açıklama",
+        "timestamp": "Zaman Damgası",
+        "load_meters":"yük metre",
     }
 }
 
@@ -177,7 +205,9 @@ def applySettings(self):
     change_language(self, settings["lang"])
 
     return settings
-    
+
+
+
 def saveSettings(self):
     # Make sure settings are up-to-date before saving
     settings = applySettings(self)
