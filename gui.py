@@ -133,7 +133,7 @@ class WaterMeterGUI(QMainWindow):
 
 
     def apply_all_filters(self):
-        readings = get_all_readings()             # fetch all readings
+        readings = get_all_readings()            # fetch all readings
         readings = self.filter_by_date(readings)  # filter by date range
         readings = self.filter_by_input(readings) # filter by user input
 
@@ -253,7 +253,7 @@ class WaterMeterGUI(QMainWindow):
 
     def display_all_meters(self):
             meters = get_all_meters()  # Assuming this returns a list of dicts or objects
-            print(meters)
+            # print(meters)
             self.advanced_table.setRowCount(0)
             self.advanced_table.setColumnCount(6)
             self.advanced_table.setHorizontalHeaderLabels([
@@ -321,26 +321,55 @@ class WaterMeterGUI(QMainWindow):
         return filtered
 
 
-    def filter_by_input(self, readings: list[tuple]) -> list[tuple]:
-        filter_type = self.filter_box.currentText()
+    def filter_by_input(self, readings):
+        filter_type = self.filter_box.currentText().strip()
         value = self.filter_input.text().strip()
+        print(readings)
+        # No filter applied
         if not value:
             return readings
 
-        if filter_type == "Meter ID":
-            return [r for r in readings if str(r[1]) == value]
-        elif filter_type == "Datetime":
-            try:
-                target_dt = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
-                return [r for r in readings if combine_datetime(r) == target_dt]
-            except ValueError:
+        # --- Meter ID filter ---
+        if filter_type.lower() == "meter id":
+            return [r for r in readings if len(r) > 1 and str(r[0]) == value]
+
+        # --- Datetime filter ---
+        elif filter_type.lower() == "datetime":
+            dt_formats = ["%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"]  # allow seconds optional
+            target_dt = None
+            for fmt in dt_formats:
+                try:
+                    target_dt = datetime.strptime(value, fmt)
+                    break
+                except ValueError:
+                    continue
+            if not target_dt:
+                print("Invalid datetime format:", value)
                 return []
-        elif filter_type == "Value":
+            return [r for r in readings if combine_datetime(r) == target_dt]
+
+        # --- Value filter ---
+        elif filter_type.lower() == "value":
             try:
-                return [r for r in readings if float(r[9]) == float(value)]  # r[9] = value column
+                target_val = float(value)
             except ValueError:
+                print("Invalid value:", value)
                 return []
+            return [
+                r for r in readings 
+                if len(r) > 9 and safe_float(r[9]) == target_val
+            ]
+
+        # Default: return everything if filter not recognized
         return readings
+
+
+def safe_float(val):
+    """Convert to float safely, return None if not valid"""
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return None
 
 # ---------- Run App ----------
 def launch_gui():
