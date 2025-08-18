@@ -298,13 +298,25 @@ def get_all_meter_ids():
     return [row[0] for row in rows]
 
 
-def query_readings(params=()):
-    query = """
-        SELECT date, time, value FROM readings
-        WHERE meterId = ?
-        AND datetime(date || ' ' || time) >= ?
-        ORDER BY datetime(date || ' ' || time)
-    """
+def query_readings(params=(), aggregate_daily=False):
+    if aggregate_daily:
+        query = """
+            SELECT date, SUM(value) as daily_usage
+            FROM readings
+            WHERE meterId = ?
+            AND datetime(date || ' ' || time) >= ?
+            GROUP BY date
+            ORDER BY date
+        """
+    else:
+        query = """
+            SELECT date, time, value
+            FROM readings
+            WHERE meterId = ?
+            AND datetime(date || ' ' || time) >= ?
+            ORDER BY datetime(date || ' ' || time)
+        """
+    
     conn = sqlite3.connect("meter_data.db")
     c = conn.cursor()
     c.execute(query, params)

@@ -21,25 +21,36 @@ from datetime import datetime, timedelta
 
 def get_daily_readings(meter_id, period="7d"):
     now = datetime.now()
+
+    # Decide cutoff and aggregation mode
     if period == "24h":
         cutoff = now - timedelta(hours=24)
+        aggregate_daily = False
     elif period == "30d":
         cutoff = now - timedelta(days=30)
-    else:
+        aggregate_daily = True
+    elif period == "1d":  # <-- special case for a single day (like 25th)
+        cutoff = now - timedelta(days=1)
+        aggregate_daily = False   # return hourly points
+    else:  # default 7 days
         cutoff = now - timedelta(days=7)
+        aggregate_daily = True
 
-   
     params = (meter_id, cutoff.strftime("%Y-%m-%d %H:%M:%S"))
+    rows = query_readings(params, aggregate_daily)
 
-    rows = query_readings(params)
-
-    dates = [datetime.strptime(f"{r[0]} {r[1]}", "%Y-%m-%d %H:%M:%S") for r in rows]
-    values = [r[2] for r in rows]
+    if aggregate_daily:
+        # daily totals
+        dates = [datetime.strptime(r[0], "%Y-%m-%d") for r in rows]
+        values = [r[1] for r in rows]
+    else:
+        # hourly/raw points
+        dates = [datetime.strptime(f"{r[0]} {r[1]}", "%Y-%m-%d %H:%M:%S") for r in rows]
+        values = [r[2] for r in rows]
 
     return dates, values
 
 def create_graphical_chart(self, meter_ids, period="7d"):
-
     lang = self.current_language
     fig = Figure(figsize=(14, 7))
     ax = fig.add_subplot(111)
@@ -48,33 +59,63 @@ def create_graphical_chart(self, meter_ids, period="7d"):
     points = []  # store points for hover
     for idx, meter_id in enumerate(meter_ids):
         dates, values = get_daily_readings(meter_id, period=period)
-        line, = ax.plot(dates, values, marker='o', linestyle='-', color=colors[idx % len(colors)])
+
+        line, = ax.plot(
+            dates, values,
+            marker='o', linestyle='-',
+            color=colors[idx % len(colors)],
+            label=str(meter_id)   # still used in tooltip, not legend
+        )
         points.append((line, dates, values))
 
+    ax.legend(
+    fontsize=10,
+    loc='center left',
+    bbox_to_anchor=(1, 0.9),  # vertical center, right side of axes
+    frameon=False
+)
+
+
+    # Titles and labels
     ax.set_title(translations[lang]["chart_title"], fontsize=18, fontweight='bold')
     ax.set_xlabel(translations[lang]["x_label"], fontsize=14)
     ax.set_ylabel(translations[lang]["y_label"], fontsize=14)
     ax.grid(True, linestyle='--', alpha=0.5)
-    ax.legend(fontsize=12, loc='upper left', frameon=False)
-    ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
+
+    # Dynamic X-axis formatting
+    if period in ["24h", "1d"]:
+        ax.xaxis.set_major_locator(mdates.HourLocator(interval=2))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+    else:  # 7d, 30d
+        ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
+
     fig.autofmt_xdate(rotation=30)
+
+    # Style
     ax.set_facecolor('#f9f9f9')
     fig.patch.set_facecolor('#ffffff')
 
+    # Embed into Qt
     canvas = FigureCanvas(fig)
     canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
     canvas.updateGeometry()
 
     # Hover tooltip function
-    annot = ax.annotate("", xy=(0,0), xytext=(15,15), textcoords="offset points",
-                        bbox=dict(boxstyle="round", fc="w"),
-                        arrowprops=dict(arrowstyle="->"))
+    annot = ax.annotate(
+        "", xy=(0,0), xytext=(15,15), textcoords="offset points",
+        bbox=dict(boxstyle="round", fc="w"),
+        arrowprops=dict(arrowstyle="->")
+    )
     annot.set_visible(False)
 
     def update_annot(line, xdata, ydata, ind):
-        annot.xy = (xdata[ind["ind"][0]], ydata[ind["ind"][0]])
-        text = f"{line.get_label()}\n{ydata[ind['ind'][0]]:.2f}"
+        idx = ind["ind"][0]
+        dt = xdata[idx]
+        val = ydata[idx]
+        # Show only datetime and value in tooltip
+        text = f"{dt.strftime('%Y-%m-%d %H:%M')}\n{val:.2f}"
+        annot.xy = (dt, val)
         annot.set_text(text)
         annot.get_bbox_patch().set_facecolor(line.get_color())
         annot.get_bbox_patch().set_alpha(0.6)
@@ -96,6 +137,7 @@ def create_graphical_chart(self, meter_ids, period="7d"):
     canvas.mpl_connect("motion_notify_event", hover)
 
     return canvas
+
 
 def setup_right_panel_for_GV(self):
     # Ensure right_layout is initialized
@@ -132,7 +174,7 @@ def setup_right_panel_for_GV(self):
 
     # Date range dropdown
     self.date_range_select = QComboBox()
-    self.date_range_select.addItems(["Last 7 Days", "Last 30 Days", "All Time"])
+    self.date_range_select.addItems(["Last 7 Days", "Last 30 Days", "Last 24 Hours"])
     self.right_layout.addWidget(self.date_range_select)
 
     # Button to generate chart
@@ -150,6 +192,7 @@ def create_usage_summary(self, values):
         high = round(max(values), 2)
         low = round(min(values), 2)
         total = round(sum(values))
+    
 
     # Remove old containers if they exist
     if hasattr(self, "usage_summary_container"):
