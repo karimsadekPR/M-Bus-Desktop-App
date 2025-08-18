@@ -17,7 +17,15 @@ from settings.settingsService import get_settings, setup_settings_tab, translate
 from home.homeService import setup_home_tab, setup_right_panel_for_Home
 from advanced.advancedService import setup_advanced_tab, setup_right_panel_for_Advanced, str_to_byte_list
 from Graphical_visualization.Graphical_visualizationService import  setup_right_panel_for_GV
+from datetime import datetime
 
+def combine_datetime(r):
+    try:
+        time_str = r[5] # take only HH:MM:SS
+        return datetime.strptime(f"{r[4]} {time_str}", "%Y-%m-%d %H:%M:%S")
+    except (ValueError, IndexError):
+        return None  # skip rows with invalid date/time
+    
 class WaterMeterGUI(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -125,21 +133,22 @@ class WaterMeterGUI(QMainWindow):
 
 
     def apply_all_filters(self):
-        readings = get_all_readings()
-        readings = self.filter_by_date(readings)
-        readings = self.filter_by_input(readings)
+        readings = get_all_readings()             # fetch all readings
+        readings = self.filter_by_date(readings)  # filter by date range
+        readings = self.filter_by_input(readings) # filter by user input
+
         current_tab = self.tab_widget.currentWidget()
         if current_tab == self.home_tab:
             self.populate_table(readings, self.home_table)
         elif current_tab == self.advanced_tab:
             self.populate_table(readings, self.advanced_table)
-
+    
     def sort_table(self):
         sort_by = self.sort_box.currentText()
         order_text = self.order_box.currentText()
         print(sort_by, order_text)
         
-        column_index = {"Meter ID": 1, "Timestamp": 2, "Value": 3}.get(sort_by, 1)
+        column_index = {"Meter Id": 1,"value": 9}.get(sort_by, 1)
         order = Qt.AscendingOrder if order_text == "Ascending" else Qt.DescendingOrder
         
         current_tab = self.tab_widget.currentWidget()
@@ -295,27 +304,43 @@ class WaterMeterGUI(QMainWindow):
                         self.display_new_readings(new_readings, Date, Time)
 
     def filter_by_date(self, readings: list[tuple]) -> list[tuple]:
-            if not self.checkbox.isChecked():
-                return readings
-            date_from = self.date_from.date().toPyDate()
-            date_to = self.date_to.date().toPyDate()
-            return [r for r in readings if date_from <= datetime.strptime(r[2][:10], "%Y-%m-%d").date() <= date_to]  # ✅ Proper date comparison
+        if not self.checkbox.isChecked():
+            return readings
+
+        date_from = self.date_from.date().toPyDate()
+        date_to = self.date_to.date().toPyDate()
+
+        print(date_from, date_to)
+
+        filtered = []
+        for r in readings:
+            dt = combine_datetime(r)
+            print(dt)
+            if dt and date_from <= dt.date() <= date_to:
+                filtered.append(r)
+        return filtered
+
 
     def filter_by_input(self, readings: list[tuple]) -> list[tuple]:
-            filter_type = self.filter_box.currentText()
-            value = self.filter_input.text().strip()
-            if not value:
-                return readings
-            if filter_type == "Meter ID":
-                return [r for r in readings if str(r[1]) == value]
-            elif filter_type == "Timestamp":
-                return [r for r in readings if value in r[2]]
-            elif filter_type == "Value":
-                try:
-                    return [r for r in readings if float(r[3]) == float(value)]
-                except ValueError:
-                    return []
+        filter_type = self.filter_box.currentText()
+        value = self.filter_input.text().strip()
+        if not value:
             return readings
+
+        if filter_type == "Meter ID":
+            return [r for r in readings if str(r[1]) == value]
+        elif filter_type == "Datetime":
+            try:
+                target_dt = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+                return [r for r in readings if combine_datetime(r) == target_dt]
+            except ValueError:
+                return []
+        elif filter_type == "Value":
+            try:
+                return [r for r in readings if float(r[9]) == float(value)]  # r[9] = value column
+            except ValueError:
+                return []
+        return readings
 
 # ---------- Run App ----------
 def launch_gui():

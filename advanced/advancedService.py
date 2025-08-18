@@ -148,12 +148,6 @@ def setup_right_panel_for_Advanced(self):
         self.export_btn.clicked.connect(lambda: export_methods(self))
         self.right_layout.addWidget(self.export_btn)
 
-        # self.usage_chart_btn = QPushButton("Show Usage Chart")
-        # self.usage_chart_btn.setStyleSheet(btnStyle) #######################################
-        # self.usage_chart_btn.setText(translations[lang]["usage_chart_btn"])
-        # self.usage_chart_btn.clicked.connect(lambda: self.show_usage_chart)
-        # self.right_layout.addWidget(self.usage_chart_btn)
-
         self.btn_delete = QPushButton("Delete") 
         self.btn_delete.setText(translations[lang]["btn_delete"])
         # self.btn_delete.setStyleSheet(btnStyle)
@@ -163,7 +157,7 @@ def setup_right_panel_for_Advanced(self):
         self.right_layout.addWidget(QLabel("Sort: "))
 
         self.sort_box = QComboBox()
-        self.sort_box.addItems(translations[lang]["sort_box"])
+        self.sort_box.addItems(["Meter Id", "value"])
         self.right_layout.addWidget(self.sort_box)
 
         self.order_box = QComboBox()
@@ -171,7 +165,7 @@ def setup_right_panel_for_Advanced(self):
         self.right_layout.addWidget(self.order_box)
 
         self.sort_button = QPushButton(translations[lang]["sort_button"])
-        self.sort_button.clicked.connect(lambda: self.sort_table())
+        self.sort_button.clicked.connect(self.sort_table)
         self.right_layout.addWidget(self.sort_button)
 
         self.right_layout.addSpacing(10)
@@ -180,11 +174,11 @@ def setup_right_panel_for_Advanced(self):
         date_layout = QHBoxLayout()
         self.date_from = QDateEdit(QDate.currentDate())
         self.date_from.setCalendarPopup(True)
-        self.date_from.setDisplayFormat("yyyy-MM-dd")
+        self.date_from.setDisplayFormat("yyyy-MM-dd HH-MM-SS")
 
         self.date_to = QDateEdit(QDate.currentDate())
         self.date_to.setCalendarPopup(True)
-        self.date_to.setDisplayFormat("yyyy-MM-dd")
+        self.date_to.setDisplayFormat("yyyy-MM-dd HH-MM-SS")
 
         date_layout.addWidget(self.date_from)
         date_layout.addWidget(self.date_to)
@@ -204,5 +198,5 @@ def setup_right_panel_for_Advanced(self):
         self.filter_button = QPushButton("Filter")
         self.filter_button.setText(translations[lang]["filter_button"])
         # self.filter_button.setStyleSheet(btnStyle)
-        self.filter_button.clicked.connect(lambda: self.apply_all_filters())
+        self.filter_button.clicked.connect(self.apply_all_filters)
         self.right_layout.addWidget(self.filter_button)

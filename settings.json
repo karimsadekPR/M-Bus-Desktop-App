@@ -1,5 +1,5 @@
 {
-    "comm_port": "COM6",
+    "comm_port": "COM4",
     "baudrate": "2400",
     "parity": "Even",
     "retry_counter": 3,

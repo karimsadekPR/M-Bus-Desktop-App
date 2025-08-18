@@ -75,7 +75,6 @@ def create_graphical_chart(self, meter_ids, period="7d"):
     frameon=False
 )
 
-
     # Titles and labels
     ax.set_title(translations[lang]["chart_title"], fontsize=18, fontweight='bold')
     ax.set_xlabel(translations[lang]["x_label"], fontsize=14)
