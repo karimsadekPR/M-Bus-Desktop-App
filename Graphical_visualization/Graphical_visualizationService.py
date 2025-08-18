@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTableWidget, QLabel, QHeaderView, QPushButton, QComboBox,
     QTableWidgetItem, QMessageBox, QDateEdit, QCheckBox, QLineEdit,
-    QTabWidget, QFileDialog, QSizePolicy, QAbstractButton, QListWidget, QListWidgetItem
+    QTabWidget, QFileDialog, QSizePolicy, QAbstractButton, QListWidget, QListWidgetItem, QFrame
 )
 from PyQt5.QtCore import Qt
 from database import get_all_meter_ids, get_all_readings_id, query_readings
@@ -12,7 +12,6 @@ from settings.settingsService import translations
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from style.btnStyle import btnStyle
-
 
 from datetime import datetime
 
@@ -137,17 +136,78 @@ def setup_right_panel_for_GV(self):
     self.right_layout.addWidget(self.date_range_select)
 
     # Button to generate chart
-    self.filter_button = QPushButton("Show Chart")
+    self.filter_button = QPushButton("Show Chart")  ######################################################
     self.filter_button.setStyleSheet(btnStyle)
-    self.filter_button.clicked.connect(lambda: setup_graphical_visualization_tab(self))
+    self.filter_button.clicked.connect(lambda: update_visualization(self))
     self.right_layout.addWidget(self.filter_button)
 
 
+def create_usage_summary(self, values):
+    if not values:  # handle empty case
+        avg = high = low = 0
+    else:
+        avg = round(sum(values) / len(values), 2)
+        high = round(max(values), 2)
+        low = round(min(values), 2)
+        total = round(sum(values))
+
+    # Remove old containers if they exist
+    if hasattr(self, "usage_summary_container"):
+        self.graphical_layout.removeWidget(self.usage_summary_container)
+        self.usage_summary_container.setParent(None)
+
+    # Main container for the summary cards
+    self.usage_summary_container = QFrame()
+    summary_layout = QHBoxLayout(self.usage_summary_container)
+    summary_layout.setSpacing(15)
+
+    # Function to build a card
+    def build_card(title, value, color):
+        card = QFrame()
+        card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {color};
+                border-radius: 12px;
+                padding: 15px;
+            }}
+            QLabel {{
+                color: white;
+                font-size: 14px;
+            }}
+        """)
+        vbox = QVBoxLayout(card)
+        label_title = QLabel(title)
+        label_title.setStyleSheet("font-weight: bold; font-size: 16px;")
+        label_value = QLabel(str(value))
+        label_value.setStyleSheet("font-size: 20px; font-weight: bold;")
+        label_title.setAlignment(Qt.AlignCenter)
+        label_value.setAlignment(Qt.AlignCenter)
+        vbox.addWidget(label_title)
+        vbox.addWidget(label_value)
+        return card
+
+    # Add 3 cards
+    summary_layout.addWidget(build_card("Average Usage", avg, "#3b82f6"))  # Blue
+    summary_layout.addWidget(build_card("Highest Usage", high, "#10b981"))  # Green
+    summary_layout.addWidget(build_card("Lowest Usage", low, "#ef4444"))   # Red
+    summary_layout.addWidget(build_card("Total Usage", total, "#5f00b8"))
+
+    # Insert before chart (so it's above it)
+    self.graphical_layout.insertWidget(0, self.usage_summary_container)
+
+
+def update_visualization(self):
+    # Update the chart and get values
+    values = setup_graphical_visualization_tab(self)
+
+    # Update usage summary
+    create_usage_summary(self,values)
+
+
 def setup_graphical_visualization_tab(self):
-    # Ensure required components are initialized
     if not hasattr(self, 'meter_list') or not hasattr(self, 'date_range_select'):
         QMessageBox.warning(self, "Error", "Graphical Visualization panel is not initialized.")
-        return
+        return []
 
     if not hasattr(self, 'graphical_layout'):
         self.graphical_layout = QVBoxLayout()
@@ -163,26 +223,35 @@ def setup_graphical_visualization_tab(self):
         self.graphical_layout.removeWidget(self.graphical_chart)
         self.graphical_chart.setParent(None)
 
-    # ✅ Now using checkboxes instead of selectedItems()
+    # ✅ Collect selected meters from checkboxes
     selected_meter_ids = []
     for i in range(self.meter_list.count()):
         item = self.meter_list.item(i)
         if item.checkState() == Qt.Checked:
             selected_meter_ids.append(item.text())
 
+    # ✅ Resolve selected range
     range_text = self.date_range_select.currentText()
     if range_text == "Last 24 Hours":
-        date_limit = 1   # meaning 1 day
+        period = "24h"
     elif range_text == "Last 7 Days":
-        date_limit = 7
+        period = "7d"
     elif range_text == "Last 30 Days":
-        date_limit = 30
+        period = "30d"
     else:
-        date_limit = None
+        period = "7d"
 
-    # Create and add chart
-    self.graphical_chart = create_graphical_chart(self, selected_meter_ids, date_limit)
+    # ✅ Create chart
+    self.graphical_chart = create_graphical_chart(self, selected_meter_ids, period)
     self.graphical_layout.addWidget(self.graphical_chart)
+
+    # ✅ Collect values for statistics
+    all_values = []
+    for meter_id in selected_meter_ids:
+        _, values = get_daily_readings(meter_id, period)
+        all_values.extend(values)
+
+    return all_values  # send values back for summary
 
     # Create status table if it doesn't exist yet
     # if not hasattr(self, 'status_table'):
