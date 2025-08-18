@@ -28,7 +28,9 @@ def setup_advanced_tab(self):
 
         self.advanced_table = create_table(self)
         layout.addWidget(self.advanced_table)
-
+        self.advanced_title.adjustSize()   # make sure label resizes if text length changes
+        self.advanced_title.repaint()      # force redraw immediately
+        
 
 def create_table(self):
     lang = self.current_language
@@ -122,7 +124,7 @@ def setup_right_panel_for_Advanced(self):
         self.right_layout.addWidget(self.btn_load)
 
         self.btn_load_meters = QPushButton("Load Meters")
-        self.btn_load_meters.setText("load meters")
+        self.btn_load_meters.setText(translations[lang]["load_meters"])
         # self.btn_load_meters.setStyleSheet(btnStyle)
         self.btn_load_meters.clicked.connect(lambda: self.display_all_meters())
         self.right_layout.addWidget(self.btn_load_meters)
