@@ -30,6 +30,7 @@ def combine_datetime(r):
 class WaterMeterGUI(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.current_table = "readings_table"
         lang = get_settings().get('lang')
         self.current_language = lang
         self.setWindowTitle("Water Meter GUI")
@@ -131,7 +132,8 @@ class WaterMeterGUI(QMainWindow):
                 item = QTableWidgetItem(str(value) if value is not None else "")
                 table.setItem(row, col_idx + 1, item)
 
-    def update_table(self):
+    def update_table(self): 
+        self.current_table = "readings_table"
         readings = get_all_readings()
         self.populate_table(readings, self.advanced_table)
 
@@ -256,6 +258,7 @@ class WaterMeterGUI(QMainWindow):
                     self.advanced_table.setItem(row_position, col_idx, QTableWidgetItem(str(value)))
 
     def display_all_meters(self):
+            self.current_table = "meters_table"
             meters = get_all_meters()  # Assuming this returns a list of dicts or objects
             # print(meters)
             self.advanced_table.setRowCount(0)

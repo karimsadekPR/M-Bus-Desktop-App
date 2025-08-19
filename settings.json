@@ -1,8 +1,8 @@
 {
-    "comm_port": "COM4",
+    "comm_port": "COM6",
     "baudrate": "2400",
     "parity": "Even",
     "retry_counter": 3,
     "timeout": 3000,
-    "lang": "tr"
+    "lang": "en"
 }

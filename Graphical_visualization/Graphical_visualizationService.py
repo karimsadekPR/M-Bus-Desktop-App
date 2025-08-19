@@ -102,10 +102,12 @@ def create_graphical_chart(self, meter_ids, period="7d"):
 
     # Hover tooltip function
     annot = ax.annotate(
-        "", xy=(0,0), xytext=(15,15), textcoords="offset points",
-        bbox=dict(boxstyle="round", fc="w"),
-        arrowprops=dict(arrowstyle="->")
+    "", xy=(0,0), xytext=(15,15), textcoords="offset points",
+    bbox=dict(boxstyle="round", fc="w", ec="black", alpha=0),
+    arrowprops=dict(arrowstyle="->", color="black", lw=1)
     )
+    annot.set_fontsize(10)
+    annot.set_fontweight("bold")
     annot.set_visible(False)
 
     def update_annot(line, xdata, ydata, ind):
@@ -185,7 +187,7 @@ def setup_right_panel_for_GV(self):
 
 def create_usage_summary(self, values):
     if not values:  # handle empty case
-        avg = high = low = 0
+        avg = high = low =  total = 0
     else:
         avg = round(sum(values) / len(values), 2)
         high = round(max(values), 2)
@@ -204,7 +206,7 @@ def create_usage_summary(self, values):
     summary_layout.setSpacing(15)
 
     # Function to build a card
-    def build_card(title, value, color):
+    def build_card(title, value=0, color=None):
         card = QFrame()
         card.setStyleSheet(f"""
             QFrame {{
@@ -232,7 +234,7 @@ def create_usage_summary(self, values):
     summary_layout.addWidget(build_card("Average Usage", avg, "#3b82f6"))  # Blue
     summary_layout.addWidget(build_card("Highest Usage", high, "#10b981"))  # Green
     summary_layout.addWidget(build_card("Lowest Usage", low, "#ef4444"))   # Red
-    summary_layout.addWidget(build_card("Total Usage", total, "#5f00b8"))
+    summary_layout.addWidget(build_card("Total Usage", total or 0, "#5f00b8"))
 
     # Insert before chart (so it's above it)
     self.graphical_layout.insertWidget(0, self.usage_summary_container)

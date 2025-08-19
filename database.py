@@ -323,3 +323,19 @@ def query_readings(params=(), aggregate_daily=False):
     rows = c.fetchall()
     conn.close()
     return rows
+
+def delete_meter(meter_id_item, meter_name_manufacture, meter_address, meter_version, meter_meter_type):
+    conn = sqlite3.connect('meter_data.db')
+    cur = conn.cursor()
+    
+    cur.execute('''
+        DELETE FROM meters 
+        WHERE meterId = ? 
+        AND manufacturer = ? 
+        AND address = ? 
+        AND version = ? 
+        AND meter_type = ?
+    ''', (meter_id_item, meter_name_manufacture, meter_address, meter_version, meter_meter_type))
+    
+    conn.commit()  # ✅ make sure changes are saved
+    conn.close()

@@ -157,7 +157,7 @@ def setup_right_panel_for_Advanced(self):
         self.btn_delete = QPushButton("Delete") 
         self.btn_delete.setText(translations[lang]["btn_delete"])
         # self.btn_delete.setStyleSheet(btnStyle)
-        self.btn_delete.clicked.connect(lambda: delete_selected_rows(self))
+        self.btn_delete.clicked.connect(lambda: delete_selected_rows(self, self.current_table))
         self.right_layout.addWidget(self.btn_delete)
 
         self.right_layout.addWidget(QLabel("Sort: "))

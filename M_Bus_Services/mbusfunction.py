@@ -142,58 +142,70 @@ def scan_mbus(port, baudrate, parity, timeout):
 
 def read_device_data(serialId):
     settings_info = get_settings()
-    port= settings_info.get("comm_port", "COM6")
-    baudrate= settings_info.get("baudrate", 2400)
+    port = settings_info.get("comm_port", "COM6")
+    baudrate = settings_info.get("baudrate", 2400)
 
     parity_map = {
-    "Even": serial.PARITY_EVEN,
-    "None": serial.PARITY_NONE
+        "Even": serial.PARITY_EVEN,
+        "None": serial.PARITY_NONE
     }
-
-    parity_value = parity_map.get(settings_info["parity"], serial.PARITY_NONE)  # default to NONE
+    parity_value = parity_map.get(settings_info.get("parity"), serial.PARITY_NONE)
 
     try:
-        ser = serial.Serial(
+        # ✅ Check if the port actually exists
+        available_ports = [p.device for p in serial.tools.list_ports.comports()]
+        if port not in available_ports:
+            print(f"No device connected on {port}")
+            return None
+
+        with serial.Serial(
             port,
             int(baudrate),
             bytesize=serial.EIGHTBITS,
             parity=parity_value,
             stopbits=serial.STOPBITS_ONE,
-            timeout= settings_info["timeout"] /1000
-            )
-        # this is a request to restart and make the mbus ready for my request
-        short_frame = build_short_frame(controls["REQ_UD2"], 0xFF)
-        ser.write(short_frame)
-        print("Sent short frame:", short_frame.hex())
-        time.sleep(1)
+            timeout=settings_info.get("timeout", 1000) / 1000
+        ) as ser:
 
-        # this is the request for the data 
-        print(type(serialId))
-        long_frame = build_long_frame(SerialId=serialId)
-        ser.write(long_frame)
-        print("Sent long frame:", long_frame.hex())
-        time.sleep(1)
+            # 🔹 Send REQ_UD2 short frame
+            short_frame = build_short_frame(controls["REQ_UD2"], 0xFF)
+            ser.write(short_frame)
+            print("Sent short frame:", short_frame.hex())
+            time.sleep(1)
 
-        response = ser.read(256)
-        print("Received:", response.hex())
+            # 🔹 Send request with SerialId
+            print(f"Sending long frame for SerialId={serialId} ({type(serialId)})")
+            long_frame = build_long_frame(SerialId=serialId)
+            ser.write(long_frame)
+            print("Sent long frame:", long_frame.hex())
+            time.sleep(1)
 
+            response = ser.read(256)
+            if response:
+                print("Received first response:", response.hex())
+            else:
+                print("No response to long frame request")
 
-        snd_ud_frame = build_short_frame(controls["SND_UD"], 0xFD)
-        ser.write(snd_ud_frame)
-        print("Sent SND_UD short frame:", snd_ud_frame.hex())
-        time.sleep(1)
+            # 🔹 Send SND_UD short frame
+            snd_ud_frame = build_short_frame(controls["SND_UD"], 0xFD)
+            ser.write(snd_ud_frame)
+            print("Sent SND_UD short frame:", snd_ud_frame.hex())
+            time.sleep(1)
 
-        response2 = ser.read(256)
-        if response2:
-            print(f"Response ({len(response2)} bytes): {response2.hex()}")
-            return parse_raw_response(response2.hex())
-        else:
-            print("No response from device.")
+            response2 = ser.read(256)
+            if response2:
+                print(f"Response2 ({len(response2)} bytes): {response2.hex()}")
+                return parse_raw_response(response2.hex())
+            else:
+                print("No response from device after SND_UD")
+                return None
 
-        ser.close()
-
+    except serial.SerialException as e:
+        print(f"Serial error: {e}")
+        return None
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Unexpected error: {e}")
+        return None
 
 if __name__ == "__main__":
     read_device_data(serialId='')

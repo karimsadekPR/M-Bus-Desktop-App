@@ -2,7 +2,7 @@
 from PyQt5.QtWidgets import ( QMessageBox )
 
 from PyQt5.QtCore import Qt
-from database import delete_Reading
+from database import delete_Reading, delete_meter
 
 
 def delete_selected_rows(self, func_key_word):
@@ -35,7 +35,7 @@ def delete_selected_rows(self, func_key_word):
     )
 
     if confirm == QMessageBox.Yes:
-        if func_key_word == 'delete_reading':
+        if func_key_word == 'readings_table':
             for row in reversed(rows_to_delete):
                 # Get table items
                 meter_id_item = table.item(row, 1)
@@ -75,10 +75,37 @@ def delete_selected_rows(self, func_key_word):
                 table.removeRow(row)
 
             QMessageBox.information(self, "Deleted", "Selected meters deleted.")
-        elif func_key_word == 'delete_meter':
+        
+        elif func_key_word == 'meters_table':
             for row in reversed(rows_to_delete):
-                # Get table items
-                meter_id_item = table.item(row, 1)
-                meter_name_item = table.item(row, 2)
+                print(rows_to_delete)
+                try:
+                    # Extract text values from table cells
+                    meter_id_item = table.item(row, 1).text() if table.item(row, 1) else None
+                    meter_name_manufacture = table.item(row, 2).text() if table.item(row, 2) else None
+                    meter_address = table.item(row, 3).text() if table.item(row, 3) else None
+                    meter_version = table.item(row, 4).text() if table.item(row, 4) else None
+                    meter_meter_type = table.item(row, 5).text() if table.item(row, 5) else None
+                    print(meter_id_item,meter_name_manufacture,meter_address)
+                    delete_meter(
+                        meter_id_item,
+                        meter_name_manufacture,
+                        meter_address,
+                        meter_version,
+                        meter_meter_type
+                    )
+
+                    # Remove row from table after deletion
+                    table.removeRow(row)
+
+                except (ValueError, AttributeError) as e:
+                    print(f"Error processing row {row}: {e}")
+                except Exception as e:
+                    print(f"Error deleting meter: {e}")
+
+            QMessageBox.information(self, "Deleted", "Selected meters deleted.")
+
+
+
                 
 
