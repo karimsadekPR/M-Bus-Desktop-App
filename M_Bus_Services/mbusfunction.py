@@ -141,6 +141,7 @@ def scan_mbus(port, baudrate, parity, timeout):
 
 
 def read_device_data(serialId):
+    print("start")
     settings_info = get_settings()
     port = settings_info.get("comm_port", "COM6")
     baudrate = settings_info.get("baudrate", 2400)
@@ -152,11 +153,11 @@ def read_device_data(serialId):
     parity_value = parity_map.get(settings_info.get("parity"), serial.PARITY_NONE)
 
     try:
-        # ✅ Check if the port actually exists
-        available_ports = [p.device for p in serial.tools.list_ports.comports()]
-        if port not in available_ports:
-            print(f"No device connected on {port}")
-            return None
+        # # ✅ Check if the port actually exists
+        # available_ports = [p.device for p in serial.tools.list_ports.comports()]
+        # if port not in available_ports:
+        #     print(f"No device connected on {port}")
+        #     return None
 
         with serial.Serial(
             port,
