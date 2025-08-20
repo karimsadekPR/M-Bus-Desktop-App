@@ -57,7 +57,9 @@ translations = {
         "description": "Description",
         "timestamp": "Timestamp",
         "load_meters":"Load meters",
-        # Add more as needed
+        "addNewMeter":"Add new meter",
+        "read_meters":"Read Added Meter(s)"
+        
     },
     'tr': {
         "btn_ok": "OK",
@@ -106,6 +108,8 @@ translations = {
         "description": "Açıklama",
         "timestamp": "Zaman Damgası",
         "load_meters":"yük metre",
+        "addNewMeter":"yeni metre ekle",
+        "read_meters":"Eklenen Metre(ler)i Oku"
     }
 }
 
