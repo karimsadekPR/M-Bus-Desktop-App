@@ -1,9 +1,22 @@
 import serial
 import time
 
+import sys
+import os
+
+# Get the absolute path of the current script
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# Get the parent directory (project root)
+parent_dir = os.path.dirname(current_dir)
+# Add parent directory to sys.path so Python can find 'settings'
+sys.path.append(parent_dir)
+
+import serial
+import time
 from settings.settingsService import get_settings
 
 controls = {
+
     "SND_UD": 0x7b,
     "REQ_UD2": 0x40,
 }
@@ -207,5 +220,34 @@ def read_device_data(serialId):
         print(f"Unexpected error: {e}")
         return None
 
+def flip_hex_string(hex_str):
+    """
+    Reverses the byte order of a hex string.
+    Input: "23 85 23 50" or "23852350"
+    Output: "50238523"
+    """
+    # 1. Remove any existing spaces from the input
+    clean_hex = hex_str.replace(" ", "")
+    
+    # 2. Convert to byte array
+    try:
+        data = bytes.fromhex(clean_hex)
+    except ValueError:
+        return "Error: Invalid Hex String"
+
+    # 3. Reverse the bytes (Slice with step -1)
+    reversed_data = data[::-1]
+
+    # 4. Convert back to hex string (upper case for readability)
+    return reversed_data.hex().upper()
+
 if __name__ == "__main__":
-    read_device_data(serialId='')
+    print("04130525")
+    input1 = "23852350"
+    result1 = flip_hex_string(input1)
+    print(f"Input: {input1} -> Output: {result1}")
+
+    input2 = "25 05 13 04"
+    result2 = flip_hex_string(input2)
+    print(f"Input: {input2} -> Output: {result2}")
+    # read_device_data(serialId='')\
