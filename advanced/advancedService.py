@@ -188,6 +188,7 @@ def setup_right_panel_for_Advanced(self):
         self.read_meters_button.clicked.connect(lambda: read_all_meters(self))
         self.right_layout.addWidget(self.read_meters_button)
 
+        self.right_layout.addSpacing(40)
 
         self.btn_load = QPushButton("Load All Readings")
         self.btn_load.setText(translations[lang]["btn_load"])

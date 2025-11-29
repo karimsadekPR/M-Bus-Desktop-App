@@ -100,14 +100,25 @@ def save_meter(meter_id, manufacturer=None, address=None, version=None, meter_ty
 def get_all_readings():
     conn = sqlite3.connect('meter_data.db')
     cur = conn.cursor()
+
     cur.execute('''
-                SELECT meterId, manufacturer, address, version, date, time, meter_type,
-                date_no, value, unit, description, timestamp
-                FROM readings
-                ''')
+        SELECT r.meterId, r.manufacturer, r.address, r.version, r.date, r.time,
+               r.meter_type, r.date_no, r.value, r.unit, r.description, r.timestamp
+        FROM readings r
+        INNER JOIN (
+            SELECT meterId, MAX(timestamp) AS latest_time
+            FROM readings
+            GROUP BY meterId
+        ) AS latest
+        ON r.meterId = latest.meterId
+        AND r.timestamp = latest.latest_time
+        ORDER BY r.meterId;
+    ''')
+
     rows = cur.fetchall()
     conn.close()
     return rows
+
 
     
 def get_all_readings_id(meterId):
