@@ -58,39 +58,6 @@ def str_to_byte_list(hex_str):
     # Convert each pair of characters to an integer (base 16)
     return [int(hex_str[i:i+2], 16) for i in range(0, len(hex_str), 2)]
 
-# def get_meter_id(self):
-#     meter_id, ok = QInputDialog.getText(self, "Enter Meter ID", "Meter ID:")
-#     if ok and meter_id.strip():
-
-#         byte_list = str_to_byte_list(meter_id)
-#         format_ = read_device_data(serialId=byte_list)
-#         readings = parse_mbus_payload(format_)
-#         print(readings)
-#         Date = datetime.now().strftime("%Y-%m-%d")
-#         Time = datetime.now().strftime("%H:%M:%S")
-#         save_meter(meter_id= readings['ID'],manufacturer= readings['Manufacturer'],address= readings['Address'],version= readings['Version'],meter_type= readings['Meter Type'])
-#         for reading in readings['Data Records']:
-#             if reading['Unit'] != '-':
-#                 save_reading(
-#                     meterId= readings["ID"],
-#                     manufacturer= readings["Manufacturer"],
-#                     address= readings["Address"],
-#                     version= readings["Version"],
-#                     date= Date,
-#                     time= Time,
-#                     meter_type= readings["Meter Type"],
-#                     value=reading['Value'],
-#                     unit=reading['Unit'],
-#                     description=reading['Description'],
-#                     date_no=None
-#                     )
-            
-#         QMessageBox.information(self, "Meter ID Entered", f"You entered: {meter_id}")
-#         print(readings)
-#         self.display_new_readings([readings], Date, Time)
-#     elif ok:  # User pressed OK but left it blank
-#         QMessageBox.warning(self, "Invalid Input", "Please enter a valid Meter ID.")
-
 def export_methods(self):
     formats = ["Excel (.xlsx)", "Text - Tab separated (.txt)", "CSV (.csv)"]
     format_choice, ok = QInputDialog.getItem(self, "Export Format", "Choose export format:", formats, 0, False)
@@ -201,23 +168,15 @@ def setup_right_panel_for_Advanced(self):
         self.btn_load_meters.clicked.connect(lambda: self.display_all_meters())
         self.right_layout.addWidget(self.btn_load_meters)
 
-        # Create the button
-        # self.btn_read = QPushButton("Read Added Meter(s)")
-        # self.btn_read.setText(translations[lang]["btn_read"])
-        # self.btn_read.setStyleSheet(btnStyle)
-        # self.btn_read.clicked.connect(lambda: get_meter_id(self))
-        # self.right_layout.addWidget(self.btn_read)
-
         self.btn_read_all = QPushButton("Read All Meters")
         self.btn_read_all.setText(translations[lang]["btn_read_all"])
         # self.btn_read_all.setStyleSheet(btnStyle)
         self.btn_read_all.clicked.connect(lambda: self.read_all_meters())
         self.right_layout.addWidget(self.btn_read_all)
 
-        self.read_mbus = QPushButton(translations[lang]["read_mbus"])
-        self.read_mbus.clicked.connect(lambda: sync_mbus_to_db())
-        self.right_layout.addWidget(self.read_mbus)
-
+        # self.read_mbus = QPushButton(translations[lang]["read_mbus"])
+        # self.read_mbus.clicked.connect(lambda: sync_mbus_to_db())
+        # self.right_layout.addWidget(self.read_mbus)
 
         self.export_btn = QPushButton("Export")
         self.export_btn.setText(translations[lang]["export_btn"])
