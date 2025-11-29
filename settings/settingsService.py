@@ -58,7 +58,8 @@ translations = {
         "timestamp": "Timestamp",
         "load_meters":"Load meters",
         "addNewMeter":"Add new meter",
-        "read_meters":"Read Added Meter(s)"
+        "read_meters":"Read Added Meter(s)",
+        "read_from_excel":"Read from an excel"
         
     },
     'tr': {
@@ -109,7 +110,8 @@ translations = {
         "timestamp": "Zaman Damgası",
         "load_meters":"yük metre",
         "addNewMeter":"yeni metre ekle",
-        "read_meters":"Eklenen Metre(ler)i Oku"
+        "read_meters":"Eklenen Metre(ler)i Oku",
+        "read_from_excel":"excel'dan Oku"
     }
 }
 

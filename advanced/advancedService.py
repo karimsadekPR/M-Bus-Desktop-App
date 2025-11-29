@@ -3,8 +3,11 @@ from datetime import datetime
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTableWidget, QLabel, QHeaderView, QPushButton, QComboBox,
-    QTableWidgetItem, QMessageBox, QDateEdit, QCheckBox, QLineEdit, QInputDialog, QListWidget
+    QTableWidgetItem, QMessageBox, QDateEdit, QCheckBox, QLineEdit, QInputDialog, QListWidget,
+    QFileDialog
 )
+import pandas as pd
+import os
 from PyQt5.QtCore import Qt, QDate
 from M_Bus_Services.M_bus_parser import parse_mbus_payload
 from M_Bus_Services.mbusfunction import read_device_data
@@ -167,6 +170,45 @@ def read_meter(self, meter_id):
     print(f"✅ Readings collected for meter {meter_id}")
 
 
+def read_ids_flexible(path):
+    ext = os.path.splitext(path)[1].lower()
+
+    # Load Excel / CSV
+    if ext in [".xlsx", ".xls"]:
+        df = pd.read_excel(path, header=None)   # <-- NO HEADERS
+    elif ext == ".csv":
+        df = pd.read_csv(path, header=None)
+    else:
+        raise ValueError("Unsupported file type")
+
+    # If the file has only 1 column → it's IDs
+    if df.shape[1] == 1:
+        return df.iloc[:, 0].dropna().astype(str).tolist()
+
+    # Otherwise try finding ID-like columns
+    patterns = ["id", "meter", "serial"]
+    id_columns = [
+        col for col in df.columns
+        if any(p in str(col).lower().replace(" ", "") for p in patterns)
+    ]
+
+    # If still no match → fallback to first column
+    if not id_columns:
+        return df.iloc[:, 0].dropna().astype(str).tolist()
+
+    # return matched column
+    return df[id_columns[0]].dropna().astype(str).tolist()
+
+
+def load_ids_via_dialog(self):
+    path, _ = QFileDialog.getOpenFileName(self, "Select Excel File", "", "Excel Files (*.csv)")
+    if not path:
+        return
+    
+    ids = read_ids_flexible(path)
+    print("Loaded IDs:", ids)
+
+
 
 def setup_right_panel_for_Advanced(self):
         lang = self.current_language
@@ -198,16 +240,15 @@ def setup_right_panel_for_Advanced(self):
 
         self.btn_load_meters = QPushButton("Load Meters")
         self.btn_load_meters.setText(translations[lang]["load_meters"])
-        # self.btn_load_meters.setStyleSheet(btnStyle)
         self.btn_load_meters.clicked.connect(lambda: self.display_all_meters())
         self.right_layout.addWidget(self.btn_load_meters)
 
         # Create the button
-        # self.btn_read = QPushButton("Read Added Meter(s)")
-        # self.btn_read.setText(translations[lang]["btn_read"])
-        # self.btn_read.setStyleSheet(btnStyle)
-        # self.btn_read.clicked.connect(lambda: get_meter_id(self))
-        # self.right_layout.addWidget(self.btn_read)
+        self.btn_read_from_excel = QPushButton("Read From an excel")
+        self.btn_read_from_excel.setText(translations[lang]["read_from_excel"])
+        # self.btn_read_from_excel.setStyleSheet(btnStyle)
+        self.btn_read_from_excel.clicked.connect(lambda: load_ids_via_dialog(self))
+        self.right_layout.addWidget(self.btn_read_from_excel)
 
         self.btn_read_all = QPushButton("Read All Meters")
         self.btn_read_all.setText(translations[lang]["btn_read_all"])
